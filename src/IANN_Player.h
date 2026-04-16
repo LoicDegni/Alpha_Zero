@@ -108,7 +108,7 @@ class IANN_Player : public Player_Interface {
             child->toVisit.pop_back();
         }
         child->untriedMoves = child->toVisit;
-        child->_politique = _net.evaluateState();
+        //child->_politique = _net.evaluateState();
         node->children.push_back(child);
 
         // On met a jour la carte _uf[O(n)]
