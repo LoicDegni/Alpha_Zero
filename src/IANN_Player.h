@@ -183,6 +183,43 @@ public:
     }
 
 private:
+    void getAllMoves(Hex_Environement& hex) {
+        /**
+         * Fonction qui recupere tout les coups valides restant
+         * dans la partie et les mets à jours au noeud racine.
+        */
+        for(unsigned int i=0; i < _taille; i++) {
+            for(unsigned int j = 0; j< _taille; j++) {
+                if(hex.isValidMove(i,j)) {
+                    _root->toVisit.push_back(convertCoordonateToID(i,j));
+                    _root->untriedMoves.push_back(convertCoordonateToID(i,j));
+                }
+            }
+        }
+    }
+
+    void simulateToTheEnd(char& pl, std::vector<int>& available_moves, std::vector<int>& played_moves){
+        /**
+         * Fonction qui simule une partie jusqu'a ce qu'il y ai un gagnant. 
+         * La structure unionFind(_uf) simule l'etat du jeu
+        */
+        do {
+            pl = (pl == 'X') ? 'O' : 'X';
+            std::uniform_int_distribution<int> uniform_moves_distribution(0, available_moves.size() -1);
+            int random_index = uniform_moves_distribution(_random_number_generator);
+            auto id = available_moves[random_index];
+            auto move = convertIDToCoordonate(id);
+            played_moves.push_back(id);
+            _uf.applyMoveUF(move.first, move.second, pl);
+        }while (!_uf.hasWinner(pl));
+
+        if (!_uf.hasWinner('X') && !_uf.hasWinner('O')){
+            std::cerr << "Erreur: available list est vide\n";
+            std::exit(EXIT_FAILURE);
+        }
+    }
+
+
     Node* FindBestChild(Node* node) {
         /**
          * Retourne le noeud le plus prometteurs
@@ -201,6 +238,32 @@ private:
             } 
         }
         return best;
+    }
+
+
+    int distanceToCenter(int r, int c, int N) {
+        /**
+         * Fonction calcul la distance de Manhattan 
+         * d'une position au centre de la table de jeu
+        */
+        int center = N / 2;
+        return std::abs(r - center) + std::abs(c - center);
+    }
+
+    int convertCoordonateToID(int r, int c) {
+        /**
+         * Fonction qui convertit une coordonne(r,c)
+         * en un identifiant unique
+        */
+        return r * _taille + c;
+    }
+
+    std::pair<int, int> convertIDToCoordonate(int id) {
+        /**
+         * Fonction qui convertit un identifiant 
+         * en sa coordonnée(r,c) d'origine
+        */
+       return {id / _taille, id % _taille};
     }
 
 
