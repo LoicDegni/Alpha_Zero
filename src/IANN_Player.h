@@ -74,8 +74,8 @@ class IANN_Player : public Player_Interface {
         for(auto child: node->children) {
             double exploitation_S_i = child->wins / (child->visits);
             double exploration_S_i = C * sqrt(log(node->visits) / (child->visits));
-            double score =  exploration_S_i + exploitation_S_i 
-            if (score > bestValue) 
+            double score =  exploration_S_i + exploitation_S_i;
+            if (score > bestValue)
             {
                 bestValue = score;
                 best = child;
