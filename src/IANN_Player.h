@@ -14,6 +14,118 @@
 #include "HexCNN.h"
 #include "Hex_Environement.h"
 
+
+class UnionFind {
+private:
+    std::vector<int> parent;
+    std::vector<int> rank;
+    std::vector<bool> occupied;
+    std::vector<char> ownership;
+
+    int top_virtual;
+    int bottom_virtual;
+    int left_virtual;
+    int right_virtual;
+    int N;
+
+public:
+    UnionFind(int n) : N(n) {
+        int size = N * N + 4; 
+        parent.resize(size);
+        occupied.resize(size);
+        ownership.resize(size,'-');
+        rank.resize(size, 0);
+
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+            occupied[i] = false;
+        }
+        top_virtual = N * N;
+        bottom_virtual = N * N + 1;
+        left_virtual = N * N + 2;
+        right_virtual = N * N + 3;
+    }
+
+    int id(int r, int c) const {
+        return r * N + c;
+    }
+
+    int find(int x) {
+        if (parent[x] != x)
+            parent[x] = find(parent[x]);
+        return parent[x];
+    }
+
+    void unite(int a, int b) {
+        int ra = find(a);
+        int rb = find(b);
+
+        if (ra == rb) return;
+
+        if (rank[ra] < rank[rb]) {
+            parent[ra] = rb;
+        }
+        else if (rank[ra] > rank[rb]) {
+            parent[rb] = ra;
+        }
+        else {
+            parent[rb] = ra;
+            rank[ra]++;
+        }
+    }
+
+    bool connected(int a, int b) {
+        return find(a) == find(b);
+    }
+
+    void reset() {
+        int size = parent.size();
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+            rank[i] = 0;
+            occupied[i] = false;
+            ownership[i] = '-';
+        }
+    }
+
+    void applyMoveUF(int r, int c, char player) {
+        int node = id(r, c);
+        occupied[node] = true;
+        ownership[node] = player;
+        //(6 voisins)
+        int dr[6] = {-1, -1, 0, 0, 1, 1};
+        int dc[6] = {0, 1, -1, 1, -1, 0};
+
+        for (int i = 0; i < 6; i++) {
+            int nr = r + dr[i];
+            int nc = c + dc[i];
+            if (nr >= 0 && nr < N && nc >= 0 && nc < N) {
+                if (occupied[id(nr, nc)] && ownership[id(nr, nc)] == player)
+                    unite(node, id(nr, nc));
+            }
+        }
+        // connexions aux au bord
+        if (player == 'O') {
+            if (r == 0) unite(node, top_virtual);
+            if (r == N - 1) unite(node, bottom_virtual);
+        }
+        if (player == 'X') {
+            if (c == 0) unite(node, left_virtual);
+            if (c == N - 1) unite(node, right_virtual);
+        }
+    }
+
+    bool hasWinner(char player) {
+        if (player == 'O') {
+            return connected(top_virtual, bottom_virtual);
+        }
+        else {
+            return connected(left_virtual, right_virtual);
+        }
+    }
+};
+
+
 class IANN_Player : public Player_Interface {
     HexCNN _net;
     char _player;
@@ -21,6 +133,8 @@ class IANN_Player : public Player_Interface {
     unsigned int _time_limit_ms = 2000; // Par défaut, 2 secondes par coup
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
     float _C_puct;
+    UnionFind _uf;
+    std::mt19937 _random_number_generator;
     std::mt19937 _rng;
 
     struct Node {
@@ -149,7 +263,7 @@ class IANN_Player : public Player_Interface {
 public:
 // Le constructeur par défaut avec HexCNN en paramètre
     IANN_Player(const HexCNN& net, char player, unsigned int taille=10, float Cpuct=2.5f) 
-        : _net(net), _player(player), _taille(taille), _C_puct(Cpuct), _rng(std::random_device{}()) {
+        : _net(net), _player(player), _taille(taille), _C_puct(Cpuct), _rng(std::random_device{}()), _random_number_generator(std::random_device{}()), _uf(taille) {
         assert(player == 'X' || player == 'O');
     }
 
@@ -183,6 +297,7 @@ public:
     }
 
 private:
+
     void getAllMoves(Hex_Environement& hex) {
         /**
          * Fonction qui recupere tout les coups valides restant
@@ -219,7 +334,6 @@ private:
         }
     }
 
-
     Node* FindBestChild(Node* node) {
         /**
          * Retourne le noeud le plus prometteurs
@@ -230,16 +344,24 @@ private:
         */
         Node* best = nullptr;
         int maxVisits = -1;
+        double bestWinrate = -1.0;
 
         for (auto child : node->children) {
             if (child->visits > maxVisits) {
                 maxVisits = child->visits;
+                bestWinrate = child->wins / (child->visits + 1e-6);
                 best = child;
             } 
+            else if (child->visits == maxVisits) {
+                double winrate = child->wins / (child->visits + 1e-6);
+                if (winrate > bestWinrate) {
+                    bestWinrate = winrate;
+                    best = child;
+                }
+            }
         }
         return best;
     }
-
 
     int distanceToCenter(int r, int c, int N) {
         /**
@@ -264,6 +386,18 @@ private:
          * en sa coordonnée(r,c) d'origine
         */
        return {id / _taille, id % _taille};
+    }
+
+    void resetUFToNow(){
+        /**
+         * Fonction qui remet à zéro la structure unionFind
+         * et ensuite la mets à jours avec l'historiques de
+         * coups courant.
+        */
+        _uf.reset();
+        for(const auto& [r,c,pl]: _historique_coups) {
+            _uf.applyMoveUF(r,c,pl);
+            }
     }
 
 
