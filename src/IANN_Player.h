@@ -62,7 +62,6 @@ class IANN_Player : public Player_Interface {
          * parmis tous les enfants du noeud courant.
          * Stratégie:
          *  Upper Confidence Trees (UCT)
-         *  RAVE (Rapid Action Value Estimation)
         */
         double C = 1.414;
         Node* best = nullptr;
@@ -71,10 +70,7 @@ class IANN_Player : public Player_Interface {
         for(auto child: node->children) {
             double exploitation_S_i = child->wins / (child->visits);
             double exploration_S_i = C * sqrt(log(node->visits) / (child->visits));
-            //On previent le cas ou child->rave_visits = 0
-            double rave_ratio = child->rave_wins/(child->rave_visits +1e-6);
-            double w = ( child->rave_visits/(child->visits + child->rave_visits + 1e-6) );
-            double score = ((1 - w)*exploitation_S_i) + (w * rave_ratio) + exploration_S_i; 
+            double score =  exploration_S_i + exploitation_S_i 
             if (score > bestValue) 
             {
                 bestValue = score;
@@ -133,7 +129,6 @@ class IANN_Player : public Player_Interface {
             return node->playerJustMoved;
         }
         simulateToTheEnd(pl,node->toVisit, played_moves);
-        raveSimulationUpdate(node, played_moves, pl);
         return pl;
     }
 
