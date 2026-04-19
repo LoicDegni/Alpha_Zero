@@ -21,7 +21,7 @@ class IANN_Player : public Player_Interface {
     char _player;
     unsigned int _taille;
     unsigned int _time_limit_ms = 2000; // Par défaut, 2 secondes par coup
-    std::vector<std::vector<char>>  _board;
+    std::vector<char>>  _board;
     
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
     //std::vector<TrainingExample>* _training_examples;
@@ -112,7 +112,6 @@ class IANN_Player : public Player_Interface {
         double exploration_S_i = 0;
 
         for(auto child: node->children) {
-            double q = 0.0;
             if (child->visits > 0) {
                 exploitation_S_i = child->valueSum / (child->visits);
             }else {
