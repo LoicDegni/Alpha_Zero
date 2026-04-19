@@ -24,7 +24,7 @@ class IANN_Player : public Player_Interface {
     std::vector<std::vector<char>>  _board;
     
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
-    std::vector<TrainingExample>* _training_examples;
+    //std::vector<TrainingExample>* _training_examples;
     
     bool _unactivate_value_head = false;
     bool _training_mode = false;
