@@ -333,7 +333,7 @@ public:
          * Fonction qui force le MCTS à utiliser 
          * des rollouts aléatoires 
         */
-       _unactivateValueHead = true;
+       _unactivate_value_head = true;
     }
 
     void enableDataCollection(std::vector<TrainingExample>* examples) {
@@ -368,7 +368,7 @@ private:
         do {
             pl = (pl == 'X') ? 'O' : 'X';
             std::uniform_int_distribution<int> uniform_moves_distribution(0, available_moves.size() -1);
-            int random_index = uniform_moves_distribution(_rgn);
+            int random_index = uniform_moves_distribution(_rng);
             auto id = available_moves[random_index];
             auto move = convertIDToCoordonate(id);
             played_moves.push_back(id);
@@ -393,7 +393,6 @@ private:
         for (auto child : node->children) {
             if (child->visits > maxVisits) {
                 maxVisits = child->visits;
-                bestWinrate = child->valueSum / (child->visits + 1e-6);
                 best = child;
             }
         }
