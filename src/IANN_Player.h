@@ -295,7 +295,7 @@ public:
             if(_unactivate_value_head)
                 backpropagateActivatedVH(node, value);
             else
-                backpropagateUnactivatedVH(node, winner)
+                backpropagateUnactivatedVH(node, winner);
             resetUFToNow();
         }
         if (_training_mode) {
