@@ -75,7 +75,7 @@ class IANN_Player : public Player_Interface {
             // 3. Valeur cible
             value_target = value;
         }
-         std::vector<TrainingExample>* _training_examples;
+        std::vector<TrainingExample> _training_examples;
     };
 
     std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
@@ -320,7 +320,7 @@ public:
         _root->parent = nullptr;
 
         // Coup joué
-        TrainingExample example = TrainingExample(_board, _taille, _player, visit_counts, totalVisits)
+        TrainingExample example = TrainingExample(_board, _taille, _player, visit_counts, totalVisits);
         return {best->moveRow, best->moveCol};
     }
 
@@ -340,7 +340,7 @@ public:
         /**
          * Fonction qui active le mode entrainement. 
         */
-        _training_mode = true
+        _training_mode = true;
         _training_examples = examples;
     }
 
