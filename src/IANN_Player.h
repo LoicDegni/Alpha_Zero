@@ -114,7 +114,7 @@ class IANN_Player : public Player_Interface {
         for(auto child: node->children) {
             double q = 0.0;
             if (child->visits > 0) {
-                exploitation_S_i = child->wins / (child->visits);
+                exploitation_S_i = child->valueSum / (child->visits);
             }else {
                 exploitation_S_i = 0;
             }
@@ -190,7 +190,7 @@ class IANN_Player : public Player_Interface {
         */
         while (node != nullptr) {
             node->visits++;
-            node->wins += v;  
+            node->valueSum += v;  
             v = -v;
             node = node->parent;
         }
@@ -204,7 +204,7 @@ class IANN_Player : public Player_Interface {
         node->visits++;
 
         if (node->playerJustMoved == winner){
-            node->wins++;
+            node->valueSum+;
         }
         node = node->parent;
        }
@@ -393,7 +393,7 @@ private:
         for (auto child : node->children) {
             if (child->visits > maxVisits) {
                 maxVisits = child->visits;
-                bestWinrate = child->wins / (child->visits + 1e-6);
+                bestWinrate = child->valueSum / (child->visits + 1e-6);
                 best = child;
             }
         }
