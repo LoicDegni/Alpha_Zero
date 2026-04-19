@@ -145,7 +145,7 @@ class IANN_Player : public Player_Interface {
             node->untriedMoves.pop_back();
             
             Node* child = new Node();
-            child->Apriori = politiques[moveID]
+            child->Apriori = politiques[moveID];
             child->visits = 0;
             child->valueSum = 0;
             child->parent = node;
@@ -163,7 +163,7 @@ class IANN_Player : public Player_Interface {
             child->untriedMoves = child->toVisit;
             node->children.push_back(child);
             }
-        node->expanded = true
+        node->expanded = true;
         return value;
     }
 
@@ -270,6 +270,7 @@ public:
 
         while (std::chrono::steady_clock::now() < deadline) {
             Node* node = _root;
+            Node* best;
             float value;
             char current_player;
             char winner;
@@ -283,7 +284,7 @@ public:
             value = expand(node);
             
             // 3. Simulation
-            if (_unactivateValueHead) {
+            if (_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)) 
                     winner = simulate(node);
                 else
@@ -303,7 +304,7 @@ public:
             best = FindBestChild(_root);
         }
 
-        std::vector<std::vector<int>> visit_counts(size, std::vector<int>(size, 0));
+        std::vector<std::vector<int>> visit_counts(_taille, std::vector<int>(_taille, 0));
         float totalVisits = 0.0f;
 
         for (Node* child : _root->children) {
