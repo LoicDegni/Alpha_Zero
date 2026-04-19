@@ -320,7 +320,7 @@ public:
         _root->parent = nullptr;
 
         // Coup joué
-        TrainingExample example = TrainingExample(_board, _taille, _player, visit_counts, totalVisits);
+        TrainingExample example(_board, _taille, _player, visit_counts, totalVisits);
         return {best->moveRow, best->moveCol};
     }
 
