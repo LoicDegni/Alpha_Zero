@@ -129,7 +129,7 @@ class IANN_Player : public Player_Interface {
         return best;
     }
 
-    float expand(Node* node, Hex_Environement& hex) {
+    float expand(Node* node) {
         /**
          * Fonction qui recoit un noeud courant, recupere un mouvement possible
          * du noeud et creer un noeud enfant avec le mouvement recuperé
