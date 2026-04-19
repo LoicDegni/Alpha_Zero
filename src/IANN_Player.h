@@ -75,6 +75,7 @@ class IANN_Player : public Player_Interface {
             // 3. Valeur cible
             value_target = value;
         }
+         std::vector<TrainingExample>* _training_examples;
     };
 
     std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
