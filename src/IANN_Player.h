@@ -52,23 +52,6 @@ class IANN_Player : public Player_Interface {
     };
     Node* _root = nullptr;
 
-    struct TrainingExample {
-        torch::Tensor state;   
-        torch::Tensor policy;  
-        float value_target;    
-        char player;
-
-        TrainingExample(const std::vector<char>& cells,
-                int size,
-                char current_player,
-                const std::vector<std::vector<int>>& visit_counts,
-                float totalVisits)
-            : state(encodeBoardState(cells, size, current_player)),
-            policy(encodePolicy(visit_counts, size, current_player, totalVisits)),
-            player(current_player),
-            value_target(0.0f)
-        {}
-    };
     std::vector<TrainingExample>* _training_examples = nullptr;
 
     std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
@@ -313,12 +296,25 @@ public:
         _root->parent = nullptr;
 
         // Coup joué
-        if (_training_mode && _training_examples != nullptr) {
-            TrainingExample example(_board, _taille, _player, visit_counts, totalVisits);
+        if (_training_mode && _training_examples != nullptr)
+        {
+            TrainingExample example;
+
+            // 1. Etat
+            example.state = encodeBoardState(_board, _taille, _player);
+
+            // 2. Politique (issue du MCTS)
+            example.policy = encodePolicy(visit_counts, _taille, _player, totalVisits);
+
+            // 3. Joueur courant
+            example.player = _player;
+
+            // 4. IMPORTANT : laisser à 0 (rempli plus tard par main.cpp)
             example.value_target = 0.0f;
+
+            // 5. Ajout au dataset
             _training_examples->push_back(example);
         }
-    
         return {best->moveRow, best->moveCol};
     }
 
