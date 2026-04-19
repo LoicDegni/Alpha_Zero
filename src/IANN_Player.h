@@ -320,13 +320,6 @@ public:
         return {best->moveRow, best->moveCol};
     }
 
-    (const std::vector<char>& cells,
-                        int size,
-                        char current_player,
-                        const std::vector<std::vector<int>>& visit_counts,
-                        float totalVisits,
-                        float value)
-
     void MCTS_TimeLimit(unsigned int time_limit_ms) {
         _time_limit_ms = time_limit_ms;
     }
