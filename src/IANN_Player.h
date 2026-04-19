@@ -59,19 +59,16 @@ class IANN_Player : public Player_Interface {
         char player;
 
         TrainingExample(const std::vector<char>& cells,
-                        int size,
-                        char current_player,
-                        const std::vector<std::vector<int>>& visit_counts,
-                        float totalVisits)
-            : player(current_player)
-        {
-            // 1. Etat (input du réseau)
-            state = encodeBoardState(cells, size, current_player);
-
-            // 2. Politique cible (MCTS)
-            policy = encodePolicy(visit_counts, size, current_player, totalVisits);
-        }
-        std::vector<TrainingExample> _training_examples;
+                int size,
+                char current_player,
+                const std::vector<std::vector<int>>& visit_counts,
+                float totalVisits)
+            : state(encodeBoardState(cells, size, current_player)),
+            policy(encodePolicy(visit_counts, size, current_player, totalVisits)),
+            player(current_player),
+            value_target(0.0f)
+        {}
+        std::vector<TrainingExample> _training_examples = = nullptr;
     };
 
     std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
@@ -316,7 +313,12 @@ public:
         _root->parent = nullptr;
 
         // Coup joué
-        TrainingExample example(_board, _taille, _player, visit_counts, totalVisits);
+        if (_training_mode && _training_examples != nullptr) {
+            TrainingExample example(_board, _taille, _player, visit_counts, totalVisits);
+            example.value_target = 0.0f;
+            _training_examples->push_back(example);
+        }
+    
         return {best->moveRow, best->moveCol};
     }
 
