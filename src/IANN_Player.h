@@ -68,8 +68,8 @@ class IANN_Player : public Player_Interface {
             player(current_player),
             value_target(0.0f)
         {}
-        std::vector<TrainingExample> _training_examples = = nullptr;
     };
+    std::vector<TrainingExample> _training_examples = = nullptr;
 
     std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
         // Génération du bruit de Dirichlet via des lois Gamma
