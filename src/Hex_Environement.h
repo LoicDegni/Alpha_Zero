@@ -30,7 +30,6 @@ public:
     };
 };
 
-
 class Hex_Environement {
     std::vector< std::tuple<unsigned int, unsigned int> > historique_coups;
     std::vector<std::vector<char>> board;

@@ -139,6 +139,7 @@ class IA_Player : public Player_Interface {
 private:
     char _player;
     unsigned int _taille;
+    unsigned int _time_limit_ms = 2000; // Par défaut, 2 secondes par coup
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
     std::mt19937 _random_number_generator;
     UnionFind _uf;
@@ -188,7 +189,7 @@ private:
         _uf.applyMoveUF(best->moveRow, best->moveCol, best->playerJustMoved);
         return best;
     }
-   
+
     Node* expand(Node* node) {
         /**
          * Fonction qui recoit un noeud courant, recupere un mouvement possible
@@ -277,6 +278,7 @@ public:
                     _root->parent = nullptr;
                     // On met a jour la carte _uf[O(n)]
                     resetUFToNow();
+                    return;
                 }
             }
             _root = nullptr; 
@@ -292,13 +294,15 @@ public:
          * le noeud le plus prometteur.
         */
         auto start = std::chrono::steady_clock::now();
+        auto deadline = start + std::chrono::milliseconds(_time_limit_ms);
+
         if(_root == nullptr) {
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             getAllMoves(hex);
         }
 
-        while (std::chrono::steady_clock::now() - start < std::chrono::milliseconds(1900)) {
+        while (std::chrono::steady_clock::now() < deadline) {
             Node* node = _root;
             // 1. Sélection
             while(node->untriedMoves.empty() && !node->children.empty())
@@ -321,6 +325,10 @@ public:
         _root = best;
         _root->parent = nullptr;
         return {best->moveRow, best->moveCol};
+    }
+
+    void MCTS_TimeLimit(unsigned int time_limit_ms) {
+        _time_limit_ms = time_limit_ms;
     }
 
 private:

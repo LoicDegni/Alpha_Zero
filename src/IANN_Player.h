@@ -21,10 +21,17 @@ class IANN_Player : public Player_Interface {
     char _player;
     unsigned int _taille;
     unsigned int _time_limit_ms = 2000; // Par défaut, 2 secondes par coup
+    std::vector<std::vector<char>>  _board;
+    
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
+    std::vector<TrainingExample>* _training_examples;
+    
+    bool _unactivate_value_head = false;
+    bool _training_mode = false;
+    
     float _C_puct;
+    
     UnionFind _uf;
-    std::mt19937 _random_number_generator;
     std::mt19937 _rng;
 
     struct Node {
@@ -32,14 +39,43 @@ class IANN_Player : public Player_Interface {
         std::vector<Node*> children;
         int moveRow, moveCol;
         char playerJustMoved;
-        int visits = 0;
-        double wins = 0;
 
-        std::vector<float> _politique;
+        int visits = 0;
+        float valueSum = 0.0;
+        float Apriori = 0.0;
+
+        std::vector<float> politique;
         std::vector<int> toVisit;
         std::vector<int> untriedMoves;
+
+        bool expanded = false;
     };
     Node* _root = nullptr;
+
+    struct TrainingExample {
+        torch::Tensor state;   
+        torch::Tensor policy;  
+        float value_target;    
+        char player;
+
+        TrainingExample(const std::vector<char>& cells,
+                        int size,
+                        char current_player,
+                        const std::vector<std::vector<int>>& visit_counts,
+                        float totalVisits,
+                        float value)
+            : player(current_player)
+        {
+            // 1. Etat (input du réseau)
+            state = encodeBoardState(cells, size, current_player);
+
+            // 2. Politique cible (MCTS)
+            policy = encodePolicy(visit_counts, size, current_player, totalVisits);
+
+            // 3. Valeur cible
+            value_target = value;
+        }
+    };
 
     std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
         // Génération du bruit de Dirichlet via des lois Gamma
@@ -50,7 +86,7 @@ class IANN_Player : public Player_Interface {
             noise[k] = gamma(_rng);
             sum += noise[k];
         }
-        
+
         // Normalisation pour que la somme soit égale à 1
         for (size_t k = 0; k < noise.size(); ++k) {
             noise[k] /= sum;
@@ -65,15 +101,23 @@ class IANN_Player : public Player_Interface {
          * La fonction selectionne le noeud le plus prometteur
          * parmis tous les enfants du noeud courant.
          * Stratégie:
-         *  Upper Confidence Trees (UCT)
+         * PUCT (Predictor Upper Confidence bounds applied to Trees)
         */
-        double C = 1.414;
+        double C = 2.5;
         Node* best = nullptr;
         double bestValue = -1e9;
 
+        double exploitation_S_i = 0;
+        double exploration_S_i = 0;
+
         for(auto child: node->children) {
-            double exploitation_S_i = child->wins / (child->visits);
-            double exploration_S_i = C * sqrt(log(node->visits) / (child->visits));
+            double q = 0.0;
+            if (child->visits > 0) {
+                exploitation_S_i = child->wins / (child->visits);
+            }else {
+                exploitation_S_i = 0;
+            }
+            exploration_S_i = C * (sqrt(node->visits) /(1 + (child->visits))) * child->Apriori;
             double score =  exploration_S_i + exploitation_S_i;
             if (score > bestValue)
             {
@@ -84,40 +128,43 @@ class IANN_Player : public Player_Interface {
         _uf.applyMoveUF(best->moveRow, best->moveCol, best->playerJustMoved);
         return best;
     }
-   
-    Node* expand(Node* node) {
+
+    float expand(Node* node, Hex_Environement& hex) {
         /**
          * Fonction qui recoit un noeud courant, recupere un mouvement possible
          * du noeud et creer un noeud enfant avec le mouvement recuperé
          * 
-         * Return:      Le noeud enfant
-        */
-        int moveID;
-        Node* child = new Node();
-        
-        moveID = node->untriedMoves.back();        
-        node->untriedMoves.pop_back();
+         * Return:          Le noeud enfant
+         */
+         
+        auto [politiques, value] = evaluateState(_net, _board, _taille, _player);
+        node->politique = politiques;
 
-        child->parent = node;
-        child->moveRow = convertIDToCoordonate(moveID).first;
-        child->moveCol = convertIDToCoordonate(moveID).second;
-        child->playerJustMoved = (node->playerJustMoved == 'X') ? 'O' : 'X';
+        while(!node->untriedMoves.empty()){
+            moveID = node->untriedMoves.back();        
+            node->untriedMoves.pop_back();
+            
+            Node* child = new Node();
+            child->Apriori = politique[moveID]
+            child->visits = 0;
+            child->valueSum = 0;
+            child->parent = node;
+            child->moveRow = convertIDToCoordonate(moveID).first;
+            child->moveCol = convertIDToCoordonate(moveID).second;
+            child->playerJustMoved = (node->playerJustMoved == 'X') ? 'O' : 'X';
 
-        child->toVisit = node->toVisit;
-
-        //maj de child->tovisit
-        auto it = std::find(child->toVisit.begin(), child->toVisit.end(),moveID);
-        if (it != child->toVisit.end()) {
-            std::swap(*it,child->toVisit.back());
-            child->toVisit.pop_back();
-        }
-        child->untriedMoves = child->toVisit;
-        //child->_politique = _net.evaluateState();
-        node->children.push_back(child);
-
-        // On met a jour la carte _uf[O(n)]
-        _uf.applyMoveUF(child->moveRow, child->moveCol, child->playerJustMoved);
-        return child;
+            //maj de child->tovisit
+            auto it = std::find(child->toVisit.begin(), child->toVisit.end(),moveID);
+            if (it != child->toVisit.end()) {
+                std::swap(*it,child->toVisit.back());
+                child->toVisit.pop_back();
+            }
+            
+            child->untriedMoves = child->toVisit;
+            node->children.push_back(child);
+            }
+        node->expanded = true
+        return value
     }
 
     char simulate(Node* node) {
@@ -136,7 +183,19 @@ class IANN_Player : public Player_Interface {
         return pl;
     }
 
-    void backpropagate(Node* node, char winner) {
+    void backpropagateActivatedVH (Node* node, float v) {
+        /**
+         * La fonction remonte l'arbre MCTS et mets à jour les noeuds.
+        */
+        while (node != nullptr) {
+            node->visits++;
+            node->wins += v;  
+            v = -v;
+            node = node->parent;
+        }
+    }
+
+    void backpropagateUnactivatedVH (Node* node, char winner) {
         /**
          * La fonction remonte l'arbre MCTS et mets à jour les noeuds.
         */
@@ -150,28 +209,118 @@ class IANN_Player : public Player_Interface {
        }
     }
 //-------------------ALGO MCTS-------------------//
+
 public:
 // Le constructeur par défaut avec HexCNN en paramètre
     IANN_Player(const HexCNN& net, char player, unsigned int taille=10, float Cpuct=2.5f) 
-        : _net(net), _player(player), _taille(taille), _C_puct(Cpuct), _rng(std::random_device{}()), _random_number_generator(std::random_device{}()), _uf(taille) {
+        : _net(net), _player(player), _taille(taille), _C_puct(Cpuct), _rng(std::random_device{}()), _uf(taille) {
         assert(player == 'X' || player == 'O');
     }
 
     void otherPlayerMove(int row, int col) override {
-        // l'autre joueur à joué (row, col)
+        /**
+         * Lorsque l'agent le coup du joueur, 
+         * il met à jour sont historique interne et 
+         * avance dans l'arbre avec l'etat courant. 
+         * Si il ne trouve pas de noeud dans son arbre qui correspond
+         * au coup joué par l'adversaire, il creer une nouvelle racine 
+         * avec l'etat courant
+        */
+        _historique_coups.push_back({row, col, (_player == 'X') ? 'O' : 'X'});
+        _board[convertCoordonateToID(row,col)] = (_player == 'X') ? 'O' : 'X';
+
+        if(_root != nullptr) {
+            for(auto child : _root->children) {
+                if(child->moveRow == row && child->moveCol == col) {
+                    _root = child;
+                    _root->parent = nullptr;
+                    // On met a jour la carte _uf[O(n)]
+                    resetUFToNow();
+                    return
+                }
+            }
+            _root = nullptr; 
+            // On met a jour la carte _uf[O(n)]
+            resetUFToNow();
+        }
+        //auto [probs, value] = evaluateState(_net, _board, _taille, (_player == 'X') ? 'O' : 'X');
+        //_root->politique 
     }
 
     std::tuple<int, int> getMove(Hex_Environement& hex) override {
-        int row, col; // TODO TP4 : choisir le coups row, col a jouer
+        auto start = std::chrono::steady_clock::now();
+        auto deadline = start + std::chrono::milliseconds(_time_limit_ms);
 
-        ///// Exemple d'un choix aléatoire ////////////
-        do {
-            row = rand()%_taille; 	// Choix aléatoire
-            col = rand()%_taille; 	// Choix aléatoire
-        } while( hex.isValidMove(row, col) == false );
-        //////////////////////////////////////////////
+        if(_root == nullptr) {
+            _root = new Node();
+            _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
+            getAllMoves(hex);
+        }
+        auto [probs, value] = evaluateState(_net, hex.board, _taille, _player);
+        _root->politique = probs;
 
-        return {row, col};
+        if (_training_mode) {
+            float epsilon = 0.25f;
+            float alpha = 0.1f * (_taille * _taille);
+            auto noise = get_dirichlet_noise(_taille * _taille, alpha);
+            for (int i = 0; i < _taille * _taille; i++) {
+                _root->politique[i] = (1 - epsilon) * _root->politique[i] + epsilon * noise[i];
+            }
+        }
+
+        while (std::chrono::steady_clock::now() < deadline) {
+            Node* node = _root;
+            float value;
+            char current_player
+            char winner;
+
+            // 1. Sélection
+            while(node->expanded && !node->children.empty())
+                node = select(node);
+            
+            // 2. Expansion
+            //if(!node->untriedMoves.empty())
+            value = expand(node);
+            
+            // 3. Simulation
+            if (_unactivateValueHead) {
+                if (!_uf.hasWinner(node->playerJustMoved)) 
+                    winner = simulate(node);
+                else
+                    winner = node->playerJustMoved;
+            }
+
+            // 4. Rétropropagation
+            if(_unactivate_value_head)
+                backpropagateActivatedVH(node, value);
+            else
+                backpropagateUnactivatedVH(node, winner)
+            resetUFToNow();
+        }
+        if (_training_mode) {
+            best = SampleBestChild(_root);
+        } else {
+            best = FindBestChild(_root);
+        }
+
+        std::vector<std::vector<int>> visit_counts(size, std::vector<int>(size, 0));
+        float totalVisits = 0.0f;
+
+        for (Node* child : _root->children) {
+            int r = child->moveRow;
+            int c = child->moveCol;
+
+            visit_counts[r][c] = child->visits;
+            totalVisits += child->visits;
+        }
+        _board[convertCoordonateToID(best->moveRow, best->moveCol)] = _player;
+        _historique_coups.push_back({best->moveRow, best->moveCol, _player});
+        _root = best;
+        _root->parent = nullptr;
+
+        // Coup joué
+        TrainingExample example = TrainingExample(_board, _taille, _player, visit_counts, totalVisits)
+        return {best->moveRow, best->moveCol};
     }
 
     void MCTS_TimeLimit(unsigned int time_limit_ms) {
@@ -179,15 +328,22 @@ public:
     }
 
     void unactivateValueHead() {
-        // TODO TP4 : désactiver la tête de valeur du CNN
+        /**
+         * Fonction qui force le MCTS à utiliser 
+         * des rollouts aléatoires 
+        */
+       _unactivateValueHead = true;
     }
 
     void enableDataCollection(std::vector<TrainingExample>* examples) {
-        // TODO TP4 : activer la collecte de données pour l'entraînement du CNN
+        /**
+         * Fonction qui active le mode entrainement. 
+        */
+        _training_mode = true
+        _training_examples = examples;
     }
 
 private:
-
     void getAllMoves(Hex_Environement& hex) {
         /**
          * Fonction qui recupere tout les coups valides restant
@@ -211,7 +367,7 @@ private:
         do {
             pl = (pl == 'X') ? 'O' : 'X';
             std::uniform_int_distribution<int> uniform_moves_distribution(0, available_moves.size() -1);
-            int random_index = uniform_moves_distribution(_random_number_generator);
+            int random_index = uniform_moves_distribution(_rgn);
             auto id = available_moves[random_index];
             auto move = convertIDToCoordonate(id);
             played_moves.push_back(id);
@@ -226,31 +382,53 @@ private:
 
     Node* FindBestChild(Node* node) {
         /**
-         * Retourne le noeud le plus prometteurs
+         * Retourne le noeud le plus prometteur
          * 
-         * Le noeud le plus visité. Lorsque plusieurs noeud
-         * ont le même nombre de visite, on compare leurs 
-         * nombre de victoire
+         * Le noeud le plus visité.
         */
         Node* best = nullptr;
         int maxVisits = -1;
-        double bestWinrate = -1.0;
 
         for (auto child : node->children) {
             if (child->visits > maxVisits) {
                 maxVisits = child->visits;
                 bestWinrate = child->wins / (child->visits + 1e-6);
                 best = child;
-            } 
-            else if (child->visits == maxVisits) {
-                double winrate = child->wins / (child->visits + 1e-6);
-                if (winrate > bestWinrate) {
-                    bestWinrate = winrate;
-                    best = child;
-                }
             }
         }
         return best;
+    }
+
+    Node* SampleBestChild(Node* node) {
+        std::vector<double> probs;
+        double sum = 0.0;
+
+        for (auto child : node->children) {
+            double p = child->visits;
+            probs.push_back(p);
+            sum += p;
+        }
+        if (sum == 0) {
+            return node->children[rand() % node->children.size()];
+        }
+
+        // normalisation
+        for (auto& p : probs) {
+            p /= sum;
+        }
+
+        // tirage
+        double r = (double)rand() / RAND_MAX;
+        double acc = 0.0;
+
+        for (size_t i = 0; i < node->children.size(); i++) {
+            acc += probs[i];
+            if (r <= acc) {
+                return node->children[i];
+            }
+        }
+
+        return node->children.back();
     }
 
     int distanceToCenter(int r, int c, int N) {
@@ -290,5 +468,6 @@ private:
             }
     }
 
+//====TP4====
 
 };
