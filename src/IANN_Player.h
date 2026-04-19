@@ -141,7 +141,7 @@ class IANN_Player : public Player_Interface {
         node->politique = politiques;
 
         while(!node->untriedMoves.empty()){
-            moveID = node->untriedMoves.back();        
+            int moveID = node->untriedMoves.back();        
             node->untriedMoves.pop_back();
             
             Node* child = new Node();
