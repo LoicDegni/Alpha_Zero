@@ -62,8 +62,7 @@ class IANN_Player : public Player_Interface {
                         int size,
                         char current_player,
                         const std::vector<std::vector<int>>& visit_counts,
-                        float totalVisits,
-                        float value)
+                        float totalVisits)
             : player(current_player)
         {
             // 1. Etat (input du réseau)
@@ -71,9 +70,6 @@ class IANN_Player : public Player_Interface {
 
             // 2. Politique cible (MCTS)
             policy = encodePolicy(visit_counts, size, current_player, totalVisits);
-
-            // 3. Valeur cible
-            value_target = value;
         }
         std::vector<TrainingExample> _training_examples;
     };
@@ -323,6 +319,13 @@ public:
         TrainingExample example(_board, _taille, _player, visit_counts, totalVisits);
         return {best->moveRow, best->moveCol};
     }
+
+    (const std::vector<char>& cells,
+                        int size,
+                        char current_player,
+                        const std::vector<std::vector<int>>& visit_counts,
+                        float totalVisits,
+                        float value)
 
     void MCTS_TimeLimit(unsigned int time_limit_ms) {
         _time_limit_ms = time_limit_ms;
