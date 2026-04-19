@@ -270,7 +270,6 @@ public:
 
         while (std::chrono::steady_clock::now() < deadline) {
             Node* node = _root;
-            Node* best;
             float value;
             char current_player;
             char winner;
@@ -298,6 +297,7 @@ public:
                 backpropagateUnactivatedVH(node, winner);
             resetUFToNow();
         }
+        Node* best;
         if (_training_mode) {
             best = SampleBestChild(_root);
         } else {
