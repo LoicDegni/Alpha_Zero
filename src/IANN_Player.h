@@ -145,7 +145,7 @@ class IANN_Player : public Player_Interface {
             node->untriedMoves.pop_back();
             
             Node* child = new Node();
-            child->Apriori = politique[moveID]
+            child->Apriori = politiques[moveID]
             child->visits = 0;
             child->valueSum = 0;
             child->parent = node;
@@ -164,7 +164,7 @@ class IANN_Player : public Player_Interface {
             node->children.push_back(child);
             }
         node->expanded = true
-        return value
+        return value;
     }
 
     char simulate(Node* node) {
@@ -203,7 +203,7 @@ class IANN_Player : public Player_Interface {
         node->visits++;
 
         if (node->playerJustMoved == winner){
-            node->valueSum+;
+            node->valueSum++;
         }
         node = node->parent;
        }
@@ -236,7 +236,7 @@ public:
                     _root->parent = nullptr;
                     // On met a jour la carte _uf[O(n)]
                     resetUFToNow();
-                    return
+                    return;
                 }
             }
             _root = nullptr; 
@@ -256,7 +256,7 @@ public:
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             getAllMoves(hex);
         }
-        auto [probs, value] = evaluateState(_net, hex.board, _taille, _player);
+        auto [probs, value] = evaluateState(_net, _board, _taille, _player);
         _root->politique = probs;
 
         if (_training_mode) {
@@ -271,7 +271,7 @@ public:
         while (std::chrono::steady_clock::now() < deadline) {
             Node* node = _root;
             float value;
-            char current_player
+            char current_player;
             char winner;
 
             // 1. Sélection
