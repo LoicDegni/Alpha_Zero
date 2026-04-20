@@ -237,40 +237,28 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
                            torch::optim::Optimizer& optimizer,
                            const std::vector<TrainingExample>& examples) {
     if (examples.empty()) return {0.0f, 0.0f, 0.0f};
-    std::cerr << "test9\n";
     net->train();
     std::vector<torch::Tensor> states, policies, values;
     states.reserve(examples.size());
     policies.reserve(examples.size());
     values.reserve(examples.size());
-    std::cerr << "test10\n";
     for (auto& ex : examples) {
         states.push_back(ex.state);    //[1, 2, N+4, N+4]
         policies.push_back(ex.policy.unsqueeze(0)); //[1, N*N]
         values.push_back(torch::tensor({ex.value_target})); // [1, 1]
     }
-    std::cerr << "test11\n";
     auto state_batch  = torch::cat(states,    0);
     auto policy_batch = torch::cat(policies,  0);
     auto value_batch  = torch::cat(values,    0);
-    std::cerr << "test12\n";
     optimizer.zero_grad();
-    std::cerr << "test13\n";
-    std::cerr << "state_batch SIZE: " << state_batch.sizes() << "\n";
     auto output = net->forward(state_batch);
-    std::cerr << "test14\n";
     auto logits = std::get<0>(output);
-    std::cerr << "test15\n";
     auto values_pred = std::get<1>(output);
-    std::cerr << "test16\n";
     // Cross-entropie pour la politique
     auto log_probs = torch::log_softmax(logits, 1);
-    std::cerr << "test17\n";
     auto policy_loss = -(policy_batch * log_probs).sum(1).mean();
-    std::cerr << "test18\n";
     // MSE (Erreur Quadratique Moyenne) pour la valeur
     auto value_loss = torch::mse_loss(values_pred, value_batch.unsqueeze(1));
-    std::cerr << "test19\n";
     auto loss = policy_loss + value_loss; // On combine les deux erreurs
     loss.backward();
     optimizer.step();
@@ -287,33 +275,28 @@ inline void entrainement(  HexCNN& net,
                     unsigned int epochs, unsigned int batch_size,
                     std::mt19937& rng
                 ) {
-    std::cerr << "test9\n";
+    
     for (unsigned int ep = 0; ep < epochs; ep++) {
         std::shuffle(train_data.begin(), train_data.end(), rng);
         float total_policy_loss = 0.0f;
         float total_value_loss = 0.0f;
         float total_entropy = 0.0f;
         int   batches       = 0;
-        std::cerr << "test0\n";
+        
         for (size_t i = 0; i < train_data.size(); i += batch_size) {
             size_t end = std::min(i + (size_t)batch_size, train_data.size());
             std::vector<TrainingExample> batch(
                 train_data.begin() + i,
                 train_data.begin() + end);
 
-            std::cerr << "Test : " << i << "\n";
+            
             auto[policy_loss, value_loss, entropy] = trainOnBatch(net, optimizer, batch);
-            std::cerr << "Test* : " << i << "\n";
             total_policy_loss += policy_loss;
-            std::cerr << "Test** : " << i << "\n";
             total_value_loss  += value_loss;
-            std::cerr << "Test*** : " << i << "\n";
             total_entropy     += entropy;
-            std::cerr << "Test**** : " << i << "\n";
-            batches++;
-            std::cerr << "Test***** : " << i << "\n";
+            batches++;    
         }
-        std::cerr << "test11\n";
+        
         std::cerr << "[train] Époque " << (ep + 1) << "/" << epochs
                     << "  policy_loss=" << (total_policy_loss / batches)
                     << "  value_loss="  << (total_value_loss / batches)
