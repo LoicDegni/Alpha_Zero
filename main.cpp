@@ -182,7 +182,6 @@ int main(int argc, char *argv[]) {
             std::cerr << "[train] Exemples collectés cette itération : " << new_examples_count
                       << "  taille totale du replay buffer : " << replay_buffer.size() << "/" << replay_buffer_capacity << std::endl;
 
-
             if (replay_buffer.empty()) {
                 std::cerr << "[train] Aucun exemple collecté, itération ignorée." << std::endl;
                 continue;
