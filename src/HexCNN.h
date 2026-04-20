@@ -245,11 +245,10 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
     values.reserve(examples.size());
     for (auto& ex : examples) {
         states.push_back(ex.state.unsqueeze(0));    //[1, 2, N+4, N+4]
-        states.push_back(ex.state.state);
         policies.push_back(ex.policy.unsqueeze(0)); //[1, N*N]
         values.push_back(torch::tensor({ex.value_target})); // [1, 1]
     }
-    auto state_batch = torch::stack(states);
+    auto state_batch  = torch::cat(states,    0);
     auto policy_batch = torch::cat(policies,  0);
     auto value_batch  = torch::cat(values,    0);
 
