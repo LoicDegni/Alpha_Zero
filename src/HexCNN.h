@@ -255,17 +255,21 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
     auto value_batch  = torch::cat(values,    0);
     std::cerr << "test12\n";
     optimizer.zero_grad();
+    std::cerr << "test13\n";
     auto output = net->forward(state_batch);
+    std::cerr << "test14\n";
     auto logits = std::get<0>(output);
+    std::cerr << "test15\n";
     auto values_pred = std::get<1>(output);
-
+    std::cerr << "test16\n";
     // Cross-entropie pour la politique
     auto log_probs = torch::log_softmax(logits, 1);
+    std::cerr << "test17\n";
     auto policy_loss = -(policy_batch * log_probs).sum(1).mean();
-    std::cerr << "test13\n";
+    std::cerr << "test18\n";
     // MSE (Erreur Quadratique Moyenne) pour la valeur
     auto value_loss = torch::mse_loss(values_pred, value_batch.unsqueeze(1));
-    std::cerr << "test14\n";
+    std::cerr << "test19\n";
     auto loss = policy_loss + value_loss; // On combine les deux erreurs
     loss.backward();
     optimizer.step();
