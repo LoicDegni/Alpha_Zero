@@ -299,6 +299,7 @@ public:
             example.state = encodeBoardState(_board, _taille, _player);
 
             // 2. Politique (issue du MCTS)
+            std::cerr << totalVisits;
             example.policy = encodePolicy(visit_counts, _taille, _player, totalVisits);
 
             // 3. Joueur courant
