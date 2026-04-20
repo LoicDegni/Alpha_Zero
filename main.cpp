@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
                 std::cerr << "[train] Aucun exemple collecté, itération ignorée." << std::endl;
                 continue;
             }
-
+            
             // --- Entraînement sur les exemples ---
             entrainement( net, optimizer,
                    std::vector<TrainingExample>(replay_buffer.begin(), replay_buffer.end()),

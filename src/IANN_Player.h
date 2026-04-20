@@ -343,6 +343,7 @@ public:
     }
 
 private:
+
     void getAllMoves(Hex_Environement& hex) {
         /**
          * Fonction qui recupere tout les coups valides restant
@@ -467,5 +468,4 @@ private:
     }
 
 //====TP4====
-
 };
