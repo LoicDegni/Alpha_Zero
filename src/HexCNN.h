@@ -256,6 +256,7 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
     std::cerr << "test12\n";
     optimizer.zero_grad();
     std::cerr << "test13\n";
+    std::cerr << "state_batch SIZE: " << state_batch.sizes() << "\n";
     auto output = net->forward(state_batch);
     std::cerr << "test14\n";
     auto logits = std::get<0>(output);
