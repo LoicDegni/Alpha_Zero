@@ -292,7 +292,7 @@ public:
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
-        std::cerr << "Nombre total de visite : " << totalVisits;
+        std::cerr << "\nNombre total de visite : " << totalVisits << "\n";
 
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
