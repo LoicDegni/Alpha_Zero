@@ -233,7 +233,7 @@ public:
         }
         auto [probs, value] = evaluateState(_net, _board, _taille, _player);
         _root->politique = probs;
-        std:cerr << "test\n";
+        std::cerr << "test\n";
 
         if (_training_mode) {
             float epsilon = 0.25f;
