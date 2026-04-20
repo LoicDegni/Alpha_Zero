@@ -237,21 +237,23 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
                            torch::optim::Optimizer& optimizer,
                            const std::vector<TrainingExample>& examples) {
     if (examples.empty()) return {0.0f, 0.0f, 0.0f};
-
+    std::cerr << "test9\n";
     net->train();
     std::vector<torch::Tensor> states, policies, values;
     states.reserve(examples.size());
     policies.reserve(examples.size());
     values.reserve(examples.size());
+    std::cerr << "test10\n";
     for (auto& ex : examples) {
         states.push_back(ex.state.unsqueeze(0));    //[1, 2, N+4, N+4]
         policies.push_back(ex.policy.unsqueeze(0)); //[1, N*N]
         values.push_back(torch::tensor({ex.value_target})); // [1, 1]
     }
+    std::cerr << "test11\n";
     auto state_batch  = torch::cat(states,    0);
     auto policy_batch = torch::cat(policies,  0);
     auto value_batch  = torch::cat(values,    0);
-
+    std::cerr << "test12\n";
     optimizer.zero_grad();
     auto output = net->forward(state_batch);
     auto logits = std::get<0>(output);
@@ -260,10 +262,10 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
     // Cross-entropie pour la politique
     auto log_probs = torch::log_softmax(logits, 1);
     auto policy_loss = -(policy_batch * log_probs).sum(1).mean();
-
+    std::cerr << "test13\n";
     // MSE (Erreur Quadratique Moyenne) pour la valeur
     auto value_loss = torch::mse_loss(values_pred, value_batch.unsqueeze(1));
-
+    std::cerr << "test14\n";
     auto loss = policy_loss + value_loss; // On combine les deux erreurs
     loss.backward();
     optimizer.step();
