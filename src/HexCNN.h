@@ -131,7 +131,7 @@ TORCH_MODULE(HexCNN);
 inline torch::Tensor encodeBoardState(const std::vector<char>& cells,
                                        int size, char currentPlayer) {
     int padded = size + 4;  // 2 de chaque côté
-    auto tensor = torch::zeros({2, padded, padded});
+    auto tensor = torch::zeros({1, 2, padded, padded});
     auto acc = tensor.accessor<float, 4>();
 
     // --- Bordures : colonnes gauche/droite = joueur courant (canal 0) ---
@@ -280,14 +280,14 @@ inline void entrainement(  HexCNN& net,
                     unsigned int epochs, unsigned int batch_size,
                     std::mt19937& rng
                 ) {
-
+    std::cerr << "test9\n";
     for (unsigned int ep = 0; ep < epochs; ep++) {
         std::shuffle(train_data.begin(), train_data.end(), rng);
         float total_policy_loss = 0.0f;
         float total_value_loss = 0.0f;
         float total_entropy = 0.0f;
         int   batches       = 0;
-
+        std::cerr << "test10\n";
         for (size_t i = 0; i < train_data.size(); i += batch_size) {
             size_t end = std::min(i + (size_t)batch_size, train_data.size());
             std::vector<TrainingExample> batch(
@@ -300,7 +300,7 @@ inline void entrainement(  HexCNN& net,
             total_entropy     += entropy;
             batches++;
         }
-
+        std::cerr << "test11\n";
         std::cerr << "[train] Époque " << (ep + 1) << "/" << epochs
                     << "  policy_loss=" << (total_policy_loss / batches)
                     << "  value_loss="  << (total_value_loss / batches)
