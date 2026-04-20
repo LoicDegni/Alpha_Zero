@@ -227,6 +227,7 @@ public:
         auto deadline = start + std::chrono::milliseconds(_time_limit_ms);
 
         if(_root == nullptr) {
+            std::cerr << "test1\n";
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             getAllMoves(hex);
