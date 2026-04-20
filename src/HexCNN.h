@@ -300,6 +300,7 @@ inline void entrainement(  HexCNN& net,
             total_value_loss  += value_loss;
             total_entropy     += entropy;
             batches++;
+            std::cerr << "Test* : " << i << "\n";
         }
         std::cerr << "test11\n";
         std::cerr << "[train] Époque " << (ep + 1) << "/" << epochs
