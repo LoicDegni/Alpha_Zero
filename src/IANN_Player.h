@@ -21,7 +21,7 @@ class IANN_Player : public Player_Interface {
     char _player;
     unsigned int _taille;
     unsigned int _time_limit_ms = 2000; // Par défaut, 2 secondes par coup
-    
+
     std::vector<char> _board = std::vector<char>(_taille * _taille, '-');
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
     
@@ -227,15 +227,15 @@ public:
         auto deadline = start + std::chrono::milliseconds(_time_limit_ms);
 
         if(_root == nullptr) {
-            std::cerr << "test1\n";
+            //std::cerr << "test1\n";
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             getAllMoves(hex);
         }
-        std::cerr << "test2\n";
+        //std::cerr << "test2\n";
         auto [probs, value] = evaluateState(_net, _board, _taille, _player);
         _root->politique = probs;
-        std::cerr << "test3\n";
+        //std::cerr << "test3\n";
 
         if (_training_mode) {
             float epsilon = 0.25f;
