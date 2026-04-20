@@ -292,6 +292,7 @@ public:
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
+        std::cerr << "Nombre total de visite : " << totalVisits;
 
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
@@ -302,7 +303,6 @@ public:
             example.state = encodeBoardState(_board, _taille, _player);
 
             // 2. Politique (issue du MCTS)
-            std::cerr << "Nombre total de visite : " << totalVisits;
             example.policy = encodePolicy(visit_counts, _taille, _player, totalVisits);
 
             // 3. Joueur courant
