@@ -21,8 +21,8 @@ class IANN_Player : public Player_Interface {
     char _player;
     unsigned int _taille;
     unsigned int _time_limit_ms = 2000; // Par défaut, 2 secondes par coup
-    std::vector<char> _board;
     
+    std::vector<char> _board = std::vector<char>(_taille * _taille, '-');
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
     
     bool _unactivate_value_head = false;
