@@ -320,9 +320,7 @@ public:
             backpropagate(node,winner);
             resetUFToNow();
         }
-        auto end = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        std::cerr << "Temps MCTS: " << duration.count() << " ms\n";
+
         Node* best = FindBestChild(_root);
         _historique_coups.push_back({best->moveRow,  best->moveCol, _player});
         _root = best;

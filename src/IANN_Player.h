@@ -272,6 +272,9 @@ public:
                 backpropagateUnactivatedVH(node, winner);
             resetUFToNow();
         }
+        auto end = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        //std::cerr << "Temps MCTS: " << duration.count() << " ms\n";
         Node* best;
         if (_training_mode) {
             best = SampleBestChild(_root);
