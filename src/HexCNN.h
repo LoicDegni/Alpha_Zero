@@ -245,7 +245,7 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
     values.reserve(examples.size());
     std::cerr << "test10\n";
     for (auto& ex : examples) {
-        states.push_back(ex.state.unsqueeze(0));    //[1, 2, N+4, N+4]
+        states.push_back(ex.state);    //[1, 2, N+4, N+4]
         policies.push_back(ex.policy.unsqueeze(0)); //[1, N*N]
         values.push_back(torch::tensor({ex.value_target})); // [1, 1]
     }
