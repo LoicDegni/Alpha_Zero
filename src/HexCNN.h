@@ -296,11 +296,15 @@ inline void entrainement(  HexCNN& net,
 
             std::cerr << "Test : " << i << "\n";
             auto[policy_loss, value_loss, entropy] = trainOnBatch(net, optimizer, batch);
-            total_policy_loss += policy_loss;
-            total_value_loss  += value_loss;
-            total_entropy     += entropy;
-            batches++;
             std::cerr << "Test* : " << i << "\n";
+            total_policy_loss += policy_loss;
+            std::cerr << "Test** : " << i << "\n";
+            total_value_loss  += value_loss;
+            std::cerr << "Test*** : " << i << "\n";
+            total_entropy     += entropy;
+            std::cerr << "Test**** : " << i << "\n";
+            batches++;
+            std::cerr << "Test***** : " << i << "\n";
         }
         std::cerr << "test11\n";
         std::cerr << "[train] Époque " << (ep + 1) << "/" << epochs
