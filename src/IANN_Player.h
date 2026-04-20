@@ -227,15 +227,12 @@ public:
         auto deadline = start + std::chrono::milliseconds(_time_limit_ms);
 
         if(_root == nullptr) {
-            //std::cerr << "test1\n";
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             getAllMoves(hex);
         }
-        //std::cerr << "test2\n";
         auto [probs, value] = evaluateState(_net, _board, _taille, _player);
         _root->politique = probs;
-        //std::cerr << "test3\n";
 
         if (_training_mode) {
             float epsilon = 0.25f;
@@ -296,7 +293,6 @@ public:
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
         {
-            std::cerr << "Erreur\n";
             TrainingExample example;
 
             // 1. Etat
