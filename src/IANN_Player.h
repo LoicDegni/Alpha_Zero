@@ -296,6 +296,7 @@ public:
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
         {
+            std::cerr << "Erreur\n";
             TrainingExample example;
 
             // 1. Etat
