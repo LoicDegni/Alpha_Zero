@@ -232,9 +232,10 @@ public:
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             getAllMoves(hex);
         }
+        std::cerr << "test2\n";
         auto [probs, value] = evaluateState(_net, _board, _taille, _player);
         _root->politique = probs;
-        std::cerr << "test\n";
+        std::cerr << "test3\n";
 
         if (_training_mode) {
             float epsilon = 0.25f;
