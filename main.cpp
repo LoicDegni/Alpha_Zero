@@ -128,7 +128,8 @@ int main(int argc, char *argv[]) {
             unsigned int new_examples_count = 0; // Pour compter les nouveaux ajouts
 
             for (unsigned int g = 0; g < train_games; g++) {
- 
+                std::vector<TrainingExample> game_examples;
+
                 Hex_Environement hex(false, taille); 
 
                 auto px = std::make_unique<IANN_Player>(net, 'X', taille, C_puct);
