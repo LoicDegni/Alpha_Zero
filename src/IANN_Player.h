@@ -24,7 +24,6 @@ class IANN_Player : public Player_Interface {
     std::vector<char> _board;
     
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
-    //std::vector<TrainingExample>* _training_examples;
     
     bool _unactivate_value_head = false;
     bool _training_mode = false;
@@ -234,6 +233,7 @@ public:
         }
         auto [probs, value] = evaluateState(_net, _board, _taille, _player);
         _root->politique = probs;
+        std:cerr << "test\n";
 
         if (_training_mode) {
             float epsilon = 0.25f;
@@ -290,10 +290,6 @@ public:
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
-        _board[convertCoordonateToID(best->moveRow, best->moveCol)] = _player;
-        _historique_coups.push_back({best->moveRow, best->moveCol, _player});
-        _root = best;
-        _root->parent = nullptr;
 
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
@@ -315,6 +311,12 @@ public:
             // 5. Ajout au dataset
             _training_examples->push_back(example);
         }
+
+        _board[convertCoordonateToID(best->moveRow, best->moveCol)] = _player;
+        _historique_coups.push_back({best->moveRow, best->moveCol, _player});
+        _root = best;
+        _root->parent = nullptr;
+        
         return {best->moveRow, best->moveCol};
     }
 
