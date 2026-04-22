@@ -92,7 +92,7 @@ class IANN_Player : public Player_Interface {
             }else {
                 exploitation_S_i = 0;
             }
-            exploration_S_i = C * (sqrt(node->visits) /(1 + (child->visits))) * child->Apriori;
+            exploration_S_i = C * (sqrt(node->visits) / (1 + (child->visits))) * child->Apriori;
             double score =  exploration_S_i + exploitation_S_i;
             if (score > bestValue)
             {
@@ -256,11 +256,10 @@ public:
                 node = select(node);
             
             // 2. Expansion
-            //if(!node->untriedMoves.empty())
             value = expand(node);
             
             // 3. Simulation
-            if (_unactivate_value_head) {
+            if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)) 
                     winner = simulate(node);
                 else
@@ -276,7 +275,7 @@ public:
         }
         auto end = std::chrono::steady_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        //std::cerr << "Temps MCTS: " << duration.count() << " ms\n";
+
         Node* best;
         if (_training_mode) {
             best = SampleBestChild(_root);
@@ -294,7 +293,7 @@ public:
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
-        std::cerr << "\nNombre total de visite : " << totalVisits << "\n";
+        //std::cerr << "\nNombre total de visite : " << totalVisits << "\n";
 
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
