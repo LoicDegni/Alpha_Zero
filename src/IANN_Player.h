@@ -160,7 +160,8 @@ class IANN_Player : public Player_Interface {
 
     void backpropagateActivatedVH (Node* node, float v) {
         /**
-         * La fonction remonte l'arbre MCTS et mets à jour les noeuds.
+         * La fonction utilsé quand le valueHead est actif
+         * remonte l'arbre MCTS et mets à jour les noeuds.
         */
         while (node != nullptr) {
             node->visits++;
@@ -172,7 +173,8 @@ class IANN_Player : public Player_Interface {
 
     void backpropagateUnactivatedVH (Node* node, char winner) {
         /**
-         * La fonction remonte l'arbre MCTS et mets à jour les noeuds.
+         * La fonction utilsé quand le valueHead est inactif
+         * remonte l'arbre MCTS et mets à jour les noeuds.
         */
        while (node != nullptr) {
         node->visits++;
@@ -267,9 +269,9 @@ public:
 
             // 4. Rétropropagation
             if(_unactivate_value_head)
-                backpropagateActivatedVH(node, value);
-            else
                 backpropagateUnactivatedVH(node, winner);
+            else
+                backpropagateActivatedVH(node, value);
             resetUFToNow();
         }
         auto end = std::chrono::steady_clock::now();
