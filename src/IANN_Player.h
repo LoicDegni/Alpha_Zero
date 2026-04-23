@@ -484,10 +484,12 @@ private:
     }
 
     void printPolitique(Node* node){
+        float sum = 0.0;
         for (int i = 0; i < node->politique.size(); i++) {
+            sum += node->politique[i]
             std::cerr << "[" << i << "]=" << node->politique[i] << " ";
             if ((i + 1) % 8 == 0) std::cerr << "\n"; // adapte à size
         }
-        std::cerr << std::endl;
+        std::cerr << "\nLa somme est : " << sum << std::endl;
     }
 };
