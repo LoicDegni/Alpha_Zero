@@ -111,15 +111,17 @@ class IANN_Player : public Player_Interface {
          * 
          * Return:          Le noeud enfant
          */
-        //auto [politiques, value] = evaluateState(_net, _board, _taille, _player);
-        //node->politique = politiques;
+        char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
+        auto [politiques, value] = evaluateState(_net, _board, _taille, current_player);
+        
+        node->politique = politiques;
 
         while(!node->untriedMoves.empty()){
             int moveID = node->untriedMoves.back();        
             node->untriedMoves.pop_back();
             
             Node* child = new Node();
-            child->Apriori = node->politique[moveID];
+            child->Apriori = politiques[moveID];
             child->visits = 0;
             child->valueSum = 0;
             child->parent = node;
@@ -133,14 +135,10 @@ class IANN_Player : public Player_Interface {
                 std::swap(*it,child->toVisit.back());
                 child->toVisit.pop_back();
             }
-            _board[moveID] = _player;
-            auto [politiques, value] = evaluateState(_net, _board, _taille, node->playerJustMoved);
-            child->politique = politiques;
-            _board[moveID] = '-';
-
+            
             child->untriedMoves = child->toVisit;
             node->children.push_back(child);
-        }
+            }
         node->expanded = true;
         return value;
     }
