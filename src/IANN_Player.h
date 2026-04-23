@@ -111,16 +111,15 @@ class IANN_Player : public Player_Interface {
          * 
          * Return:          Le noeud enfant
          */
-         
-        auto [politiques, value] = evaluateState(_net, _board, _taille, _player);
-        node->politique = politiques;
+        //auto [politiques, value] = evaluateState(_net, _board, _taille, _player);
+        //node->politique = politiques;
 
         while(!node->untriedMoves.empty()){
             int moveID = node->untriedMoves.back();        
             node->untriedMoves.pop_back();
             
             Node* child = new Node();
-            child->Apriori = politiques[moveID];
+            child->Apriori = node->politique[moveID];
             child->visits = 0;
             child->valueSum = 0;
             child->parent = node;
@@ -134,10 +133,14 @@ class IANN_Player : public Player_Interface {
                 std::swap(*it,child->toVisit.back());
                 child->toVisit.pop_back();
             }
-            
+            _board[moveID] = _player;
+            auto [politiques, value] = evaluateState(_net, _board, _taille, node->playerJustMoved);
+            child->politique = politiques;
+            _board[moveID] = '-';
+
             child->untriedMoves = child->toVisit;
             node->children.push_back(child);
-            }
+        }
         node->expanded = true;
         return value;
     }
@@ -221,8 +224,6 @@ public:
             // On met a jour la carte _uf[O(n)]
             resetUFToNow();
         }
-        //auto [probs, value] = evaluateState(_net, _board, _taille, (_player == 'X') ? 'O' : 'X');
-        //_root->politique 
     }
 
     std::tuple<int, int> getMove(Hex_Environement& hex) override {
@@ -289,14 +290,13 @@ public:
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
-        //std::cerr << "\nNombre total de visite : " << totalVisits << "\n";
 
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
         {
             TrainingExample example;
 
-            // 1. Etat
+            // 1. Etat 
             example.state = encodeBoardState(_board, _taille, _player);
 
             // 2. Politique (issue du MCTS)
