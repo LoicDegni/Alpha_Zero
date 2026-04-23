@@ -40,6 +40,7 @@ class IANN_Player : public Player_Interface {
         char playerJustMoved;
 
         int visits = 0;
+        int wins = 0;
         float valueSum = 0.0;
         float Apriori = 0.0;
 
@@ -79,28 +80,34 @@ class IANN_Player : public Player_Interface {
          * Stratégie:
          * PUCT (Predictor Upper Confidence bounds applied to Trees)
         */
-        double C = 2.5;
         Node* best = nullptr;
         double bestValue = -1e9;
 
-        double exploitation_S_i = 0;
-        double exploration_S_i = 0;
+        double exploitation_score = 0;
+        double exploration_score = 0;
+
+        double move_value = 0.0;
 
         for(auto child: node->children) {
-            if (child->visits > 0) {
-                exploitation_S_i = child->valueSum / (child->visits);
-            }else {
-                exploitation_S_i = 0;
-            }
-            exploration_S_i = C * (sqrt(node->visits) / (1 + (child->visits))) * child->Apriori;
-            double score =  exploration_S_i + exploitation_S_i;
-            if (score > bestValue)
+            double move_value = child->valueSum;
+            int move_visited_count = child->visits
+
+            if (move_visited_count > 0) 
+                exploitation_score = move_value / move_visited_count;
+            else 
+                exploitation_score = 0;
+    
+            exploration_score = _C_puct * (sqrt(node->visits) / (1 + (child->visits))) * child->Apriori;
+            double score_puct =  exploitation_score + exploration_score;
+            
+            if (score_puct > bestValue)
             {
                 bestValue = score;
                 best = child;
             }
         }
-        _uf.applyMoveUF(best->moveRow, best->moveCol, best->playerJustMoved);
+
+        if(_unactivate_value_head) _uf.applyMoveUF(best->moveRow, best->moveCol, best->playerJustMoved);
         return best;
     }
 
@@ -181,7 +188,7 @@ class IANN_Player : public Player_Interface {
         node->visits++;
 
         if (node->playerJustMoved == winner){
-            node->valueSum++;
+            node->wins++;
         }
         node = node->parent;
        }
@@ -214,13 +221,13 @@ public:
                     _root = child;
                     _root->parent = nullptr;
                     // On met a jour la carte _uf[O(n)]
-                    resetUFToNow();
+                    if(_unactivate_value_head) resetUFToNow();
                     return;
                 }
             }
             _root = nullptr; 
             // On met a jour la carte _uf[O(n)]
-            resetUFToNow();
+            if(_unactivate_value_head) resetUFToNow();
         }
     }
 
@@ -256,6 +263,7 @@ public:
 
             // 2. Expansion
             value = expand(node);
+            std::cerr << "value : " << value << std:: endl; 
 
             // 3. Simulation
             if(_unactivate_value_head) {
@@ -266,22 +274,28 @@ public:
             }
 
             // 4. Rétropropagation
+            float resultat;
+
             if(_unactivate_value_head)
-                backpropagateUnactivatedVH(node, winner);
+                resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
+                std::cerr << "resultat : " << resultat << std:: endl; 
             else
-                backpropagateActivatedVH(node, value);
-            resetUFToNow();
+                resultat = value;
+
+            backpropagateActivatedVH(node, resultat);
+
+
+            if(_unactivate_value_head) resetUFToNow();
         }
 
         auto end = std::chrono::steady_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         Node* best;
-        if (_training_mode) {
+        if (_training_mode) 
             best = SampleBestChild(_root);
-        } else {
+        else 
             best = FindBestChild(_root);
-        }
 
         std::vector<std::vector<int>> visit_counts(_taille, std::vector<int>(_taille, 0));
         float totalVisits = 0.0f;
