@@ -47,7 +47,7 @@ class IANN_Player : public Player_Interface {
         std::vector<float> politique;
         std::vector<int> toVisit;
         std::vector<int> untriedMoves;
-        std::vector<char> state = std::vector<char>(_taille * _taille, '-');
+        std::vector<char> state;
 
         bool expanded = false;
     };
@@ -262,11 +262,9 @@ public:
             char current_player;
             char winner;
 
-
             // 1. Sélection
             while(node->expanded && !node->children.empty()){
                 node = select(node);
-
             }
 
             //std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
