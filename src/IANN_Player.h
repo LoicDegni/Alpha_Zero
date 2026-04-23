@@ -168,9 +168,9 @@ class IANN_Player : public Player_Interface {
         if (node->toVisit.empty()) {
             return node->playerJustMoved;
         }
-        std::cerr << "Taille de node->toVisit : " << node->toVisit.size() << std::endl;
+        //std::cerr << "Taille de node->toVisit : " << node->toVisit.size() << std::endl;
         simulateToTheEnd(pl,node->toVisit, played_moves);
-        std::cerr << "Winner : " << pl << std::endl;
+        //std::cerr << "Winner : " << pl << std::endl;
         return pl;
     }
 
@@ -279,8 +279,8 @@ public:
             //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
 
             current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-            std::cerr << "\nJoueur courant : " << current_player << std::endl;
-            std::cerr << "noeud courant : (" << node->moveCol << "," << node->moveRow << ")" << std::endl;
+            //std::cerr << "\nJoueur courant : " << current_player << std::endl;
+            //std::cerr << "noeud courant : (" << node->moveCol << "," << node->moveRow << ")" << std::endl;
             
             // 3. Simulation
             if(_unactivate_value_head) {
