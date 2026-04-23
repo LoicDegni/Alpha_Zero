@@ -293,8 +293,8 @@ public:
                 if (!_uf.hasWinner(node->playerJustMoved)){
                     winner = simulate(node);
                     //std::cerr << "test1" << std::endl;
-                    std::cerr << "winner : " << winner << std::endl;
-                    std::cerr << "IA_PLAYER  : " << _player << std::endl;
+                    //std::cerr << "winner : " << winner << std::endl;
+                    //std::cerr << "IA_PLAYER  : " << _player << std::endl;
                     //std::cerr << "node current player apres simulation : " << node->playerJustMoved << std::endl;
                     }
                 else{
