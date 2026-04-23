@@ -335,19 +335,14 @@ public:
         if (_training_mode && _training_examples != nullptr)
         {
             TrainingExample example;
-
             // 1. Etat 
             example.state = encodeBoardState(_board, _taille, _player);
-
             // 2. Politique (issue du MCTS)
             example.policy = encodePolicy(visit_counts, _taille, _player, totalVisits);
-
             // 3. Joueur courant
             example.player = _player;
-
-            // 4. IMPORTANT : laisser à 0 (rempli plus tard par main.cpp)
+            // 4. Laisser à 0 
             example.value_target = 0.0f;
-
             // 5. Ajout au dataset
             _training_examples->push_back(example);
         }
