@@ -234,12 +234,12 @@ public:
             getAllMoves(hex);
             auto [probs, value] = evaluateState(_net, _board, _taille, _player);
             _root->politique = probs;
-            printPolitique(_root);
+            //printPolitique(_root);
         }
 
         if (_training_mode) {
             applyDirichletNoise(hex, _root);
-            printPolitique(_root);
+            //printPolitique(_root);
         }
 
         while (std::chrono::steady_clock::now() < deadline) {
