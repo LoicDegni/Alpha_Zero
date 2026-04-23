@@ -114,44 +114,46 @@ class IANN_Player : public Player_Interface {
         return best;
     }
 
-    float expand(Node* node) {
+    std::pair<Node* ,float> expand(Node* node) {
         /**
          * Fonction qui recoit un noeud courant, recupere un mouvement possible
          * du noeud et creer un noeud enfant avec le mouvement recuperé
          * 
          * Return:          Le noeud enfant
          */
+        int moveID; 
+        Node* child = new Node();
+
+        moveID = node->untriedMoves.back();        
+        node->untriedMoves.pop_back();
+        
         char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
         auto [politiques, value] = evaluateState(_net, node->state, _taille, current_player);
 
         node->politique = politiques;
+        
+        child->Apriori = politiques[moveID];
+        child->parent = node;
+        child->moveRow = convertIDToCoordonate(moveID).first;
+        child->moveCol = convertIDToCoordonate(moveID).second;
+        child->playerJustMoved = (node->playerJustMoved == 'X') ? 'O' : 'X';
+        child->state = node->state;
+        child->state[moveID] = child->playerJustMoved;
 
-        while(!node->untriedMoves.empty()){
-            int moveID = node->untriedMoves.back();        
-            node->untriedMoves.pop_back();
-            
-            Node* child = new Node();
-            child->Apriori = politiques[moveID];
-            child->visits = 0;
-            child->valueSum = 0;
-            child->parent = node;
-            child->moveRow = convertIDToCoordonate(moveID).first;
-            child->moveCol = convertIDToCoordonate(moveID).second;
-            child->playerJustMoved = (node->playerJustMoved == 'X') ? 'O' : 'X';
-            child->state = node->state;
-            child->state[moveID] = child->playerJustMoved;
+        child->toVisit = node->toVisit;
 
-            //maj de child->tovisit
-            auto it = std::find(child->toVisit.begin(), child->toVisit.end(),moveID);
-            if (it != child->toVisit.end()) {
-                std::swap(*it,child->toVisit.back());
-                child->toVisit.pop_back();
-            }
-            child->untriedMoves = child->toVisit;
-            node->children.push_back(child);
-        }
-        node->expanded = true;
-        return value;
+        //maj de child->tovisit
+        auto it = std::find(child->toVisit.begin(), child->toVisit.end(),moveID);
+        if (it != child->toVisit.end()) {
+            std::swap(*it,child->toVisit.back());
+            child->toVisit.pop_back();
+        }   
+        child->untriedMoves = child->toVisit;
+        node->children.push_back(child);
+
+        // On met a jour la carte _uf[O(n)]
+        _uf.applyMoveUF(child->moveRow, child->moveCol, child->playerJustMoved);
+        return {child,value};
     }
 
     char simulate(Node* node) {
@@ -271,13 +273,14 @@ public:
             //std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
 
             // 2. Expansion
-            value = expand(node);
+            auto [node,value] = expand(node);
             if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
             //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
 
             current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-            std::cerr << "Joueur courant : " << current_player << std::endl;
+            std::cerr << "\nJoueur courant : " << current_player << std::endl;
             std::cerr << "noeud courant : (" << node->moveCol << "," << node->moveRow << ")" << std::endl;
+            
             // 3. Simulation
             if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)){
