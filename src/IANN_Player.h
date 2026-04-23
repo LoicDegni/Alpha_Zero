@@ -234,6 +234,7 @@ public:
             getAllMoves(hex);
             auto [probs, value] = evaluateState(_net, _board, _taille, _player);
             _root->politique = probs;
+            printPolitique(_root);
         }
 
         if (_training_mode) {
@@ -481,4 +482,11 @@ private:
         for (float& p : root->politique) p /= sum;
     }
 
+    void printPolitique(Node* node){
+        for (int i = 0; i < node->politique.size(); i++) {
+            std::cerr << "[" << i << "]=" << node->politique[i] << " ";
+            if ((i + 1) % 8 == 0) std::cerr << "\n"; // adapte à size
+        }
+        std::cerr << std::endl;
+    }
 };
