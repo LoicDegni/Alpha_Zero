@@ -264,7 +264,7 @@ public:
             char winner;
 
             // 1. Sélection
-            while(node->expanded && !node->children.empty()){
+            while(node->untriedMoves.empty() && !node->children.empty()){
                 node = select(node);
             }
 
