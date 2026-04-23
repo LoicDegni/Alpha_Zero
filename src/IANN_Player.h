@@ -278,12 +278,12 @@ public:
 
             // 3. Simulation
             if(_unactivate_value_head) {
-                if (!_uf.hasWinner(node->playerJustMoved)) 
+                if (!_uf.hasWinner(node->playerJustMoved)){
                     winner = simulate(node);
-                    std::cerr << "test1" << std::endl;
-                else
+                    std::cerr << "test1" << std::endl;}
+                else{
                     winner = node->playerJustMoved;
-                    std::cerr << "test2" << std::endl;
+                    std::cerr << "test2" << std::endl;}
             }
 
             // 4. Rétropropagation
@@ -296,6 +296,7 @@ public:
             else{
                 resultat = value;
             }
+            
             backpropagateActivatedVH(node, resultat);
 
 
