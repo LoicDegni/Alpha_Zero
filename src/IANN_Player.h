@@ -266,6 +266,7 @@ public:
 
         while (std::chrono::steady_clock::now() < deadline) {
             Node* node = _root;
+            float value;
             char current_player;
             char winner;
 
@@ -273,11 +274,11 @@ public:
             while(node->untriedMoves.empty() && !node->children.empty()){
                 node = select(node);
             }
-
             // 2. Expansion
             if(!node->untriedMoves.empty()){
-                auto [child, value] = expand(node);
+                auto [child, val] = expand(node);
                 node = child;
+                value = val;
             }
 
             //if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
