@@ -114,7 +114,7 @@ class IANN_Player : public Player_Interface {
         return best;
     }
 
-    std::pair<Node* ,float> expand(Node* node) {
+    std::pair <Node* ,float> expand(Node* node) {
         /**
          * Fonction qui recoit un noeud courant, recupere un mouvement possible
          * du noeud et creer un noeud enfant avec le mouvement recuperé
@@ -261,7 +261,6 @@ public:
 
         while (std::chrono::steady_clock::now() < deadline) {
             Node* node = _root;
-            float value;
             char current_player;
             char winner;
 
@@ -273,7 +272,8 @@ public:
             //std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
 
             // 2. Expansion
-            auto [node,value] = expand(node);
+            auto [node, value] = expand(node);
+
             if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
             //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
 
