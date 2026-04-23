@@ -47,6 +47,7 @@ class IANN_Player : public Player_Interface {
         std::vector<float> politique;
         std::vector<int> toVisit;
         std::vector<int> untriedMoves;
+        std::vector<char> state = std::vector<char>(_taille * _taille, '-');
 
         bool expanded = false;
     };
@@ -121,7 +122,7 @@ class IANN_Player : public Player_Interface {
          * Return:          Le noeud enfant
          */
         char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-        auto [politiques, value] = evaluateState(_net, _board, _taille, current_player);
+        auto [politiques, value] = evaluateState(_net, node->state, _taille, current_player);
 
         node->politique = politiques;
 
@@ -137,6 +138,8 @@ class IANN_Player : public Player_Interface {
             child->moveRow = convertIDToCoordonate(moveID).first;
             child->moveCol = convertIDToCoordonate(moveID).second;
             child->playerJustMoved = (node->playerJustMoved == 'X') ? 'O' : 'X';
+            child->state = node->state;
+            child->state[moveID] = child->playerJustMoved;
 
             //maj de child->tovisit
             auto it = std::find(child->toVisit.begin(), child->toVisit.end(),moveID);
@@ -236,12 +239,14 @@ public:
     std::tuple<int, int> getMove(Hex_Environement& hex) override {
         auto start = std::chrono::steady_clock::now();
         auto deadline = start + std::chrono::milliseconds(_time_limit_ms);
+        std::vector<int> current_moves; 
 
         if(_root == nullptr) {
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
+            _root->state = _board;
             getAllMoves(hex);
-            auto [probs, value] = evaluateState(_net, _board, _taille, _player);
+            auto [probs, value] = evaluateState(_net, _root->state, _taille, _player);
             _root->politique = probs;
             //printPolitique(_root);
         }
@@ -257,9 +262,12 @@ public:
             char current_player;
             char winner;
 
+
             // 1. Sélection
-            while(node->expanded && !node->children.empty())
+            while(node->expanded && !node->children.empty()){
                 node = select(node);
+
+            }
 
             //std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
 
