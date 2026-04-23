@@ -147,13 +147,9 @@ class IANN_Player : public Player_Interface {
                 std::swap(*it,child->toVisit.back());
                 child->toVisit.pop_back();
             }
-            
             child->untriedMoves = child->toVisit;
             node->children.push_back(child);
         }
-        // On met a jour la carte _uf[O(n)]
-        if(_unactivate_value_head) _uf.applyMoveUF(child->moveRow, child->moveCol, child->playerJustMoved);
-
         node->expanded = true;
         return value;
     }
@@ -170,6 +166,7 @@ class IANN_Player : public Player_Interface {
         if (node->toVisit.empty()) {
             return node->playerJustMoved;
         }
+        std::cer << "Taille de node->toVisit : " << node->toVisit.size() << std:::endl;
         simulateToTheEnd(pl,node->toVisit, played_moves);
         return pl;
     }
@@ -296,7 +293,7 @@ public:
             else{
                 resultat = value;
             }
-            
+
             backpropagateActivatedVH(node, resultat);
 
 
