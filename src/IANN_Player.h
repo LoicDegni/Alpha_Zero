@@ -174,7 +174,7 @@ class IANN_Player : public Player_Interface {
         return pl;
     }
 
-    void backpropagateActivatedVH (Node* node, float v) {
+    void backPropagate(Node* node, float v) {
         /**
          * La fonction utilsé quand le valueHead est actif
          * remonte l'arbre MCTS et mets à jour les noeuds.
@@ -220,8 +220,10 @@ public:
          * au coup joué par l'adversaire, il creer une nouvelle racine 
          * avec l'etat courant
         */
+        int moveID = convertCoordonateToID(row,col); 
+
         _historique_coups.push_back({row, col, (_player == 'X') ? 'O' : 'X'});
-        _board[convertCoordonateToID(row,col)] = (_player == 'X') ? 'O' : 'X';
+        _board[moveID] = (_player == 'X') ? 'O' : 'X';
 
         if(_root != nullptr) {
             for(auto child : _root->children) {
@@ -248,6 +250,7 @@ public:
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             _root->state = _board;
+
             getAllMoves(hex);
             auto [probs, value] = evaluateState(_net, _root->state, _taille, _player);
             _root->politique = probs;
@@ -298,24 +301,19 @@ public:
             }
 
             // 4. Rétropropagation
-            float resultat;
+            float resultat = (_unactivate_value_head == false) ? value : (node->playerJustMoved == winner) ? 1.0f : -1.0f;;
 
-            if(_unactivate_value_head){
+            /*if(_unactivate_value_head){
                 resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
                 //std::cerr << "evaluation de la position du rollout  : " << resultat << std:: endl; 
             }
             else{
                 resultat = value;
-            }
-
-            backpropagateActivatedVH(node, resultat);
-
+            }*/
+            backPropagate(node, resultat);
 
             if(_unactivate_value_head) resetUFToNow();
         }
-
-        auto end = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         Node* best;
         if (_training_mode) 
@@ -332,7 +330,9 @@ public:
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
-
+        std::cerr << "Visite totale _root : " << _root->visits <<std::endl;
+        std::cerr << "Visite totale calculée : " << totalVisits <<std::endl;
+        
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
         {
