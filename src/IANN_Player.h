@@ -134,7 +134,7 @@ class IANN_Player : public Player_Interface {
             node->expanded = true;
             node->value = value; 
         }
-        child->Apriori = node->politiques[moveID];
+        child->Apriori = node->politique[moveID];
         child->parent = node;
         child->moveRow = convertIDToCoordonate(moveID).first;
         child->moveCol = convertIDToCoordonate(moveID).second;
