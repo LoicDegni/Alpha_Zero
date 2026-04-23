@@ -86,6 +86,12 @@ class IANN_Player : public Player_Interface {
         double exploitation_S_i = 0;
         double exploration_S_i = 0;
 
+        for (int i = 0; i < node->politique.size(); i++) {
+            std::cerr << "[" << i << "]=" << node->politique[i] << " ";
+            if ((i + 1) % _taille == 0) std::cerr << "\n"; // adapte à size
+        }
+        std::cerr << std::endl;
+
         for(auto child: node->children) {
             if (child->visits > 0) {
                 exploitation_S_i = child->valueSum / (child->visits);
@@ -113,7 +119,7 @@ class IANN_Player : public Player_Interface {
          */
         char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
         auto [politiques, value] = evaluateState(_net, _board, _taille, current_player);
-        
+
         node->politique = politiques;
 
         while(!node->untriedMoves.empty()){
