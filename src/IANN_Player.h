@@ -305,8 +305,9 @@ public:
             }
 
             // 4. Rétropropagation
-            float resultat = (_unactivate_value_head == false) ? value : (node->playerJustMoved == winner) ? 1.0f : -1.0f ;
-
+            float resultat = (_unactivate_value_head == false)
+                ? value
+                : ((node->playerJustMoved == winner) ? 1.0f : -1.0f);
             /*if(_unactivate_value_head){
                 resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
                 //std::cerr << "evaluation de la position du rollout  : " << resultat << std:: endl; 
