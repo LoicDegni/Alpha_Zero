@@ -124,7 +124,7 @@ class IANN_Player : public Player_Interface {
         int moveID; 
         Node* child = new Node();
         char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-        
+
         moveID = node->untriedMoves.back();        
         node->untriedMoves.pop_back();
 
@@ -305,7 +305,7 @@ public:
             }
 
             // 4. Rétropropagation
-            float resultat = (_unactivate_value_head == false) ? value : (node->playerJustMoved == winner) ? 1.0f : -1.0f;;
+            float resultat = (_unactivate_value_head == false) ? value : (node->playerJustMoved == winner) ? 1.0f : -1.0f ;
 
             /*if(_unactivate_value_head){
                 resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
