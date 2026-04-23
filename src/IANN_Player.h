@@ -238,7 +238,7 @@ public:
         }
 
         if (_training_mode) {
-            applyDirichletNoise(_root);
+            applyDirichletNoise(hex, _root);
         }
 
         while (std::chrono::steady_clock::now() < deadline) {
