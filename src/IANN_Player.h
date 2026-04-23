@@ -330,9 +330,7 @@ public:
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
-        std::cerr << "Visite totale _root : " << _root->visits <<std::endl;
-        std::cerr << "Visite totale calculée : " << totalVisits <<std::endl;
-        
+
         // Coup joué
         if (_training_mode && _training_examples != nullptr)
         {
