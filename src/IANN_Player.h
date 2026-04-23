@@ -286,7 +286,8 @@ public:
                     }
                 else{
                     winner = node->playerJustMoved;
-                    //std::cerr << "test2" << std::endl;}
+                    //std::cerr << "test2" << std::endl;
+                    }
             }
 
             // 4. Rétropropagation
