@@ -277,6 +277,7 @@ public:
 
             current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
             std::cerr << "Joueur courant : " << current_player << std::endl;
+            std::cerr << "noeud courant : (" << node->moveCol << "," << node->moveRow << ")" << std::endl;
             // 3. Simulation
             if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)){
