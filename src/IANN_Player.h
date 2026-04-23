@@ -272,12 +272,16 @@ public:
             // 2. Expansion
             value = expand(node);
             if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
-
+            
+            std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;}
             // 3. Simulation
             if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)){
                     winner = simulate(node);
-                    std::cerr << "test1" << std::endl;}
+                    std::cerr << "test1" << std::endl;
+                    std::cerr << "winner : " << winner << std::endl;
+                    std::cerr << "IA_PLAYER  : " << _player << std::endl;
+                    std::cerr << "node current player apres simulation : " << node->playerJustMoved << std::endl;}
                 else{
                     winner = node->playerJustMoved;
                     std::cerr << "test2" << std::endl;}
