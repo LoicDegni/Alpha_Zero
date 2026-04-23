@@ -271,7 +271,7 @@ public:
 
             // 2. Expansion
             value = expand(node);
-            std::cerr << "value : " << value << std:: endl; 
+            if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
 
             // 3. Simulation
             if(_unactivate_value_head) {
@@ -286,7 +286,7 @@ public:
 
             if(_unactivate_value_head){
                 resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
-                std::cerr << "resultat : " << resultat << std:: endl; 
+                std::cerr << "evaluation de la position du rollout  : " << resultat << std:: endl; 
             }
             else{
                 resultat = value;
