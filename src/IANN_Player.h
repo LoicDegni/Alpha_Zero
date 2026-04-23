@@ -282,7 +282,8 @@ public:
                     //std::cerr << "test1" << std::endl;
                     //std::cerr << "winner : " << winner << std::endl;
                     //std::cerr << "IA_PLAYER  : " << _player << std::endl;
-                    //std::cerr << "node current player apres simulation : " << node->playerJustMoved << std::endl;}
+                    //std::cerr << "node current player apres simulation : " << node->playerJustMoved << std::endl;
+                    }
                 else{
                     winner = node->playerJustMoved;
                     //std::cerr << "test2" << std::endl;}
