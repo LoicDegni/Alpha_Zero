@@ -252,7 +252,7 @@ public:
             while(node->expanded && !node->children.empty())
                 node = select(node);
 
-            std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
+            //std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
 
             // 2. Expansion
             value = expand(node);
