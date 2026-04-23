@@ -278,12 +278,13 @@ public:
             // 4. Rétropropagation
             float resultat;
 
-            if(_unactivate_value_head)
+            if(_unactivate_value_head){
                 resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
                 std::cerr << "resultat : " << resultat << std:: endl; 
-            else
+            }
+            else{
                 resultat = value;
-
+            }
             backpropagateActivatedVH(node, resultat);
 
 
