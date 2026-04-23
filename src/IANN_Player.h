@@ -41,6 +41,7 @@ class IANN_Player : public Player_Interface {
 
         int visits = 0;
         int wins = 0;
+        float value = 0.0;
         float valueSum = 0.0;
         float Apriori = 0.0;
 
@@ -124,7 +125,6 @@ class IANN_Player : public Player_Interface {
         int moveID; 
         Node* child = new Node();
         char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-
         moveID = node->untriedMoves.back();        
         node->untriedMoves.pop_back();
 
@@ -132,8 +132,9 @@ class IANN_Player : public Player_Interface {
             auto [politiques, value] = evaluateState(_net, node->state, _taille, current_player);
             node->politique = politiques;
             node->expanded = true;
+            node->value = value; 
         }
-        child->Apriori = politiques[moveID];
+        child->Apriori = node->politiques[moveID];
         child->parent = node;
         child->moveRow = convertIDToCoordonate(moveID).first;
         child->moveCol = convertIDToCoordonate(moveID).second;
@@ -154,7 +155,7 @@ class IANN_Player : public Player_Interface {
 
         // On met a jour la carte _uf[O(n)]
         _uf.applyMoveUF(child->moveRow, child->moveCol, child->playerJustMoved);
-        return {child,value};
+        return {child,node->value};
     }
 
     char simulate(Node* node) {
@@ -273,14 +274,11 @@ public:
                 node = select(node);
             }
 
-            //std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
-
             // 2. Expansion
             if(!node->untriedMoves.empty()){
                 auto [child, value] = expand(node);
                 node = child;
             }
-
 
             //if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
             //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
@@ -303,11 +301,11 @@ public:
                     //std::cerr << "test2" << std::endl;
                     }
             }
-
             // 4. Rétropropagation
             float resultat = (_unactivate_value_head == false)
                 ? value
                 : ((node->playerJustMoved == winner) ? 1.0f : -1.0f);
+
             /*if(_unactivate_value_head){
                 resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
                 //std::cerr << "evaluation de la position du rollout  : " << resultat << std:: endl; 
