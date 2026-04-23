@@ -273,7 +273,7 @@ public:
             value = expand(node);
             if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
             
-            std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;}
+            std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
             // 3. Simulation
             if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)){
