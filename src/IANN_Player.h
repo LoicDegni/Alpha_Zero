@@ -166,7 +166,7 @@ class IANN_Player : public Player_Interface {
         if (node->toVisit.empty()) {
             return node->playerJustMoved;
         }
-        std::cerr << "Taille de node->toVisit : " << node->toVisit.size() << std:::endl;
+        std::cerr << "Taille de node->toVisit : " << node->toVisit.size() << std::endl;
         simulateToTheEnd(pl,node->toVisit, played_moves);
         return pl;
     }
