@@ -239,6 +239,7 @@ public:
 
         if (_training_mode) {
             applyDirichletNoise(hex, _root);
+            printPolitique(_root);
         }
 
         while (std::chrono::steady_clock::now() < deadline) {
