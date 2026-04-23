@@ -247,14 +247,9 @@ public:
             char winner;
 
             // 1. Sélection
-            while(node->expanded && !node->children.empty()){
+            while(node->expanded && !node->children.empty())
                 node = select(node);
-                for (int i = 0; i < node->politique.size(); i++) {
-                    std::cerr << "[" << i << "]=" << node->politique[i] << " ";
-                    if ((i + 1) % _taille == 0) std::cerr << "\n"; // adapte à size
-                }
-                std::cerr << std::endl;
-            }
+
             std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
 
             // 2. Expansion
