@@ -20,9 +20,9 @@ class IANN_Player : public Player_Interface {
     HexCNN _net;
     char _player;
     unsigned int _taille;
-    unsigned int _time_limit_ms = 2000; // Par défaut, 2 secondes par coup
+    unsigned int _time_limit_ms = 2000;
 
-    std::vector<char> _board = std::vector<char>(_taille * _taille, '-');
+    std::vector<char> _board;
     std::vector< std::tuple<unsigned int, unsigned int, char> > _historique_coups;
     
     bool _unactivate_value_head = false;
@@ -192,6 +192,7 @@ public:
     IANN_Player(const HexCNN& net, char player, unsigned int taille=10, float Cpuct=2.5f) 
         : _net(net), _player(player), _taille(taille), _C_puct(Cpuct), _rng(std::random_device{}()), _uf(taille) {
         assert(player == 'X' || player == 'O');
+        _board = std::vector<char>(_taille * _taille, '-');
     }
 
     void otherPlayerMove(int row, int col) override {
@@ -232,17 +233,12 @@ public:
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             getAllMoves(hex);
+            auto [probs, value] = evaluateState(_net, _board, _taille, _player);
+            _root->politique = probs;
         }
-        auto [probs, value] = evaluateState(_net, _board, _taille, _player);
-        _root->politique = probs;
 
         if (_training_mode) {
-            float epsilon = 0.25f;
-            float alpha = 0.1f * (_taille * _taille);
-            auto noise = get_dirichlet_noise(_taille * _taille, alpha);
-            for (int i = 0; i < _taille * _taille; i++) {
-                _root->politique[i] = (1 - epsilon) * _root->politique[i] + epsilon * noise[i];
-            }
+            applyDirichletNoise(_root);
         }
 
         while (std::chrono::steady_clock::now() < deadline) {
@@ -346,19 +342,22 @@ public:
 
 private:
 
-    void getAllMoves(Hex_Environement& hex) {
+    std::vector<int>  getAllMoves(Hex_Environement& hex) {
         /**
          * Fonction qui recupere tout les coups valides restant
          * dans la partie et les mets à jours au noeud racine.
         */
+        std::vector<int> valid_moves;
         for(unsigned int i=0; i < _taille; i++) {
             for(unsigned int j = 0; j< _taille; j++) {
                 if(hex.isValidMove(i,j)) {
+                    valid_moves.push_back(convertCoordonateToID(i,j));
                     _root->toVisit.push_back(convertCoordonateToID(i,j));
                     _root->untriedMoves.push_back(convertCoordonateToID(i,j));
                 }
             }
         }
+        return valid_moves;
     }
 
     void simulateToTheEnd(char& pl, std::vector<int>& available_moves, std::vector<int>& played_moves){
@@ -469,5 +468,16 @@ private:
             }
     }
 
-//====TP4====
+    void applyDirichletNoise(Hex_Environement& hex, Node* root) {
+        float epsilon = 0.25f;
+        float alpha = 0.1f * (_taille * _taille);
+        auto noise = get_dirichlet_noise(_taille * _taille, alpha);
+        for (int i = 0; i < _taille * _taille; i++) {
+            root->politique[i] = (1 - epsilon) * root->politique[i] + epsilon * noise[i];
+        }
+        float sum = 0.0f;
+        for (float p : root->politique) sum += p;
+        for (float& p : root->politique) p /= sum;
+    }
+
 };

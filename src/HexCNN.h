@@ -269,34 +269,33 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
     return {policy_loss.item<float>(), value_loss.item<float>(), entropy.item<float>()};
 }
 
-inline void entrainement(  HexCNN& net,
+inline void entrainement(HexCNN& net,
                     torch::optim::Optimizer& optimizer,
                     std::vector<TrainingExample> train_data,
                     unsigned int epochs, unsigned int batch_size,
                     std::mt19937& rng
                 ) {
-    
     for (unsigned int ep = 0; ep < epochs; ep++) {
         std::shuffle(train_data.begin(), train_data.end(), rng);
         float total_policy_loss = 0.0f;
         float total_value_loss = 0.0f;
         float total_entropy = 0.0f;
         int   batches       = 0;
-        
+
         for (size_t i = 0; i < train_data.size(); i += batch_size) {
             size_t end = std::min(i + (size_t)batch_size, train_data.size());
             std::vector<TrainingExample> batch(
                 train_data.begin() + i,
                 train_data.begin() + end);
 
-            
+
             auto[policy_loss, value_loss, entropy] = trainOnBatch(net, optimizer, batch);
             total_policy_loss += policy_loss;
             total_value_loss  += value_loss;
             total_entropy     += entropy;
             batches++;    
         }
-        
+
         std::cerr << "[train] Époque " << (ep + 1) << "/" << epochs
                     << "  policy_loss=" << (total_policy_loss / batches)
                     << "  value_loss="  << (total_value_loss / batches)

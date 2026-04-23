@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
                     } else {
                         ex.value_target = -1.0f;
                     }
-                    
+
                     replay_buffer.push_back(ex);
                 }
                 new_examples_count += game_examples.size();
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
                 std::cerr << "[train] Aucun exemple collecté, itération ignorée." << std::endl;
                 continue;
             }
-            
+
             // --- Entraînement sur les exemples ---
             entrainement( net, optimizer,
                    std::vector<TrainingExample>(replay_buffer.begin(), replay_buffer.end()),
