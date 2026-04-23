@@ -123,15 +123,16 @@ class IANN_Player : public Player_Interface {
          */
         int moveID; 
         Node* child = new Node();
-
+        char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
+        
         moveID = node->untriedMoves.back();        
         node->untriedMoves.pop_back();
-        
-        char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-        auto [politiques, value] = evaluateState(_net, node->state, _taille, current_player);
 
-        node->politique = politiques;
-        
+        if (!node->expanded) {
+            auto [politiques, value] = evaluateState(_net, node->state, _taille, current_player);
+            node->politique = politiques;
+            node->expanded = true;
+        }
         child->Apriori = politiques[moveID];
         child->parent = node;
         child->moveRow = convertIDToCoordonate(moveID).first;
@@ -147,7 +148,7 @@ class IANN_Player : public Player_Interface {
         if (it != child->toVisit.end()) {
             std::swap(*it,child->toVisit.back());
             child->toVisit.pop_back();
-        }   
+        }
         child->untriedMoves = child->toVisit;
         node->children.push_back(child);
 
@@ -275,8 +276,11 @@ public:
             //std::cerr << "Noeud selectionne : (" << node->moveCol << "," << node->moveRow << ")";
 
             // 2. Expansion
-            auto [child, value] = expand(node);
-            node = child;
+            if(!node->untriedMoves.empty()){
+                auto [child, value] = expand(node);
+                node = child;
+            }
+
 
             //if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
             //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
