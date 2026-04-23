@@ -168,6 +168,7 @@ class IANN_Player : public Player_Interface {
         }
         std::cerr << "Taille de node->toVisit : " << node->toVisit.size() << std::endl;
         simulateToTheEnd(pl,node->toVisit, played_moves);
+        std::cerr << "Winner : " << pl << std::endl;
         return pl;
     }
 
@@ -275,6 +276,7 @@ public:
             //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
 
             current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
+            std::cerr << "Joueur courant : " << current_player << std::endl;
             // 3. Simulation
             if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)){
@@ -322,7 +324,6 @@ public:
         for (Node* child : _root->children) {
             int r = child->moveRow;
             int c = child->moveCol;
-
             visit_counts[r][c] = child->visits;
             totalVisits += child->visits;
         }
@@ -352,7 +353,7 @@ public:
         _historique_coups.push_back({best->moveRow, best->moveCol, _player});
         _root = best;
         _root->parent = nullptr;
-        
+
         return {best->moveRow, best->moveCol};
     }
 
