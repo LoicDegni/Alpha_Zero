@@ -150,7 +150,10 @@ class IANN_Player : public Player_Interface {
             
             child->untriedMoves = child->toVisit;
             node->children.push_back(child);
-            }
+        }
+        // On met a jour la carte _uf[O(n)]
+        if(_unactivate_value_head) _uf.applyMoveUF(child->moveRow, child->moveCol, child->playerJustMoved);
+
         node->expanded = true;
         return value;
     }
@@ -277,8 +280,10 @@ public:
             if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)) 
                     winner = simulate(node);
+                    std::cerr << "test1" << std::endl;
                 else
                     winner = node->playerJustMoved;
+                    std::cerr << "test2" << std::endl;
             }
 
             // 4. Rétropropagation
