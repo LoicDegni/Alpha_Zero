@@ -90,19 +90,21 @@ class IANN_Player : public Player_Interface {
 
         for(auto child: node->children) {
             double move_value = child->valueSum;
-            int move_visited_count = child->visits
+            int move_visited_count = child->visits;
 
-            if (move_visited_count > 0) 
+            if (move_visited_count > 0){
                 exploitation_score = move_value / move_visited_count;
-            else 
+            }
+            else{
                 exploitation_score = 0;
+            }
     
             exploration_score = _C_puct * (sqrt(node->visits) / (1 + (child->visits))) * child->Apriori;
             double score_puct =  exploitation_score + exploration_score;
             
             if (score_puct > bestValue)
             {
-                bestValue = score;
+                bestValue = score_puct;
                 best = child;
             }
         }
