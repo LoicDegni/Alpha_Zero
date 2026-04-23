@@ -259,7 +259,8 @@ public:
             //printPolitique(_root);
         }
 
-        if (_training_mode) {
+        if (_training_mode && !_root->politique.empty()) {
+            //std::cerr << "ROOT POLICY SIZE = " << root->politique.size() << std::endl;
             applyDirichletNoise(hex, _root);
             //printPolitique(_root);
         }
