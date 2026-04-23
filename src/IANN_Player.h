@@ -275,7 +275,7 @@ public:
             auto [child, value] = expand(node);
             node = child;
 
-            if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
+            //if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
             //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
 
             current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
