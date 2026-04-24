@@ -176,29 +176,32 @@ inline std::pair<std::vector<float>, float> evaluateState(
     net->eval();
 
     auto output = net->forward(encodeBoardState(cells, size, currentPlayer));
-    auto logits = std::get<0>(output).squeeze(0).clone();
-    float value = std::get<1>(output).item<float>();
+    auto logits = std::get<0>(output).squeeze(0).clone();  // [N*N]
+    float value = std::get<1>(output).item<float>();       // Scalaire [-1, 1]
 
-    assert(logits.size(0) == size * size);
+    // Masquer les cases occupées
+    {
+        auto acc = logits.accessor<float, 1>();
+        for (int r = 0; r < size; r++)
+            for (int c = 0; c < size; c++)
+                if (cells[r * size + c] != '-') {
+                    int rot = (currentPlayer == 'X') ? (r * size + c) : (c * size + r);
+                    acc[rot] = -1e9f;
+                }
+    }
 
-    auto acc = logits.accessor<float, 1>();
+    auto probs_rot = torch::softmax(logits, 0);
+    auto prob_acc  = probs_rot.accessor<float, 1>();
 
-    for (int i = 0; i < size * size; i++) {
-        if (cells[i] != '-') {
-            acc[i] = -1e9f;
+    // Retransformer dans l'espace original
+    std::vector<float> probs(size * size, 0.0f);
+    for (int r = 0; r < size; r++)
+        for (int c = 0; c < size; c++) {
+            int orig = r * size + c;
+            int rot  = (currentPlayer == 'X') ? orig : (c * size + r);
+            probs[orig] = prob_acc[rot];
         }
-    }
-
-    auto probs = torch::softmax(logits, 0);
-
-    std::vector<float> result(size * size);
-    auto p = probs.accessor<float, 1>();
-
-    for (int i = 0; i < size * size; i++) {
-        result[i] = p[i];
-    }
-
-    return {result, value};
+    return {probs, value};
 }
 
 // ============================================================
@@ -266,7 +269,7 @@ inline std::tuple<float, float, float> trainOnBatch(HexCNN& net,
     return {policy_loss.item<float>(), value_loss.item<float>(), entropy.item<float>()};
 }
 
-inline void entrainement(HexCNN& net,
+inline void entrainement(  HexCNN& net,
                     torch::optim::Optimizer& optimizer,
                     std::vector<TrainingExample> train_data,
                     unsigned int epochs, unsigned int batch_size,
@@ -278,7 +281,7 @@ inline void entrainement(HexCNN& net,
         float total_value_loss = 0.0f;
         float total_entropy = 0.0f;
         int   batches       = 0;
-
+        
         for (size_t i = 0; i < train_data.size(); i += batch_size) {
             size_t end = std::min(i + (size_t)batch_size, train_data.size());
             std::vector<TrainingExample> batch(
