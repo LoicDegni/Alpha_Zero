@@ -87,6 +87,7 @@ class IANN_Player : public Player_Interface {
 
         double exploitation_score = 0;
         double exploration_score = 0;
+        double score_puct;
 
         double move_value = 0.0;
         if (node->children.empty()) {
@@ -110,7 +111,7 @@ class IANN_Player : public Player_Interface {
     
             exploration_score = _C_puct * (sqrt(node->visits) / (1 + (child->visits))) * child->Apriori;
             
-            double score_puct =  exploitation_score + exploration_score;
+            score_puct =  exploitation_score + exploration_score;
             
             if (score_puct > bestValue)
             {
@@ -119,6 +120,15 @@ class IANN_Player : public Player_Interface {
             }
         }
         if(best == nullptr) {
+            std::cerr << "Best est nullptr" << std::endl;
+            std::cerr << "Noeud ("<< node->moveRow << "," << node->moveCol << ")" << std::endl;
+            if(node->children.empty()) {
+                std::cerr << "Le noeud n'a pas d'enfant" << std::endl;
+            }else {
+                std::cerr << "Le dernier score_puct de la boucle est : " << score_puct << std::endl;
+                std::cerr << "Le score d'exploitation est : " << exploitation_score << std::endl;
+                std::cerr << "Le score d'exploration est : " << exploration_score << std::endl;
+            }
             std::cerr << "Best est nullptr" << std::endl;
             exit(1);
         }
