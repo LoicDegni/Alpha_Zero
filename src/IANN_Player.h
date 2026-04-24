@@ -159,7 +159,7 @@ class IANN_Player : public Player_Interface {
 
         char current_player = (child->playerJustMoved == 'X') ? 'O' : 'X';
         auto [politiques, value] = evaluateState(_net, child->state, _taille, current_player);
-
+        child->politique = politiques;
 
         child->toVisit = node->toVisit;
         //maj de child->tovisit
