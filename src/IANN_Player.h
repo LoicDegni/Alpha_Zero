@@ -90,11 +90,14 @@ class IANN_Player : public Player_Interface {
 
         double move_value = 0.0;
         if (node->children.empty()) {
-            std::cerr << "SELECT: node sans enfants, moveRow=" 
-                    << node->moveRow << " moveCol=" << node->moveCol << std::endl;
+
         }
 
         for(auto child: node->children) {
+            if(child == nullptr) {
+                std::cerr << "child est nullptr" << std::endl;
+                exit(1);
+            }
             double move_value = child->valueSum;
             int move_visited_count = child->visits;
 
@@ -271,9 +274,7 @@ public:
         }
 
         if (_training_mode && !_root->politique.empty()) {
-            //std::cerr << "ROOT POLICY SIZE = " << root->politique.size() << std::endl;
             applyDirichletNoise(hex, _root);
-            //printPolitique(_root);
         }
 
         while (std::chrono::steady_clock::now() < deadline) {
