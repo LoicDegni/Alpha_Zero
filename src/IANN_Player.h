@@ -65,12 +65,10 @@ class IANN_Player : public Player_Interface {
             noise[k] = gamma(_rng);
             sum += noise[k];
         }
-
         // Normalisation pour que la somme soit égale à 1
         for (size_t k = 0; k < noise.size(); ++k) {
             noise[k] /= sum;
         }
-
         return noise;
     }
 
@@ -93,7 +91,6 @@ class IANN_Player : public Player_Interface {
         int move_visited_count;
 
         if (node->children.empty()) {
-
         }
 
         for(auto child: node->children) {
@@ -148,29 +145,23 @@ class IANN_Player : public Player_Interface {
          */
         int moveID; 
         Node* child = new Node();
-        char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-        if (node->untriedMoves.empty()) {
-            std::cerr << "EXPAND: aucun coup possible !" << std::endl;
-        }
         moveID = node->untriedMoves.back();        
         node->untriedMoves.pop_back();
 
-        if (!node->expanded) {
-            auto [politiques, value] = evaluateState(_net, node->state, _taille, current_player);
-            node->politique = politiques;
-            node->expanded = true;
-            node->value = value; 
-        }
         child->Apriori = node->politique[moveID];
         child->parent = node;
         child->moveRow = convertIDToCoordonate(moveID).first;
         child->moveCol = convertIDToCoordonate(moveID).second;
         child->playerJustMoved = (node->playerJustMoved == 'X') ? 'O' : 'X';
+
         child->state = node->state;
         child->state[moveID] = child->playerJustMoved;
 
-        child->toVisit = node->toVisit;
+        char current_player = (child->playerJustMoved == 'X') ? 'O' : 'X';
+        auto [politiques, value] = evaluateState(_net, child->state, _taille, current_player);
 
+
+        child->toVisit = node->toVisit;
         //maj de child->tovisit
         auto it = std::find(child->toVisit.begin(), child->toVisit.end(),moveID);
         if (it != child->toVisit.end()) {
@@ -182,7 +173,7 @@ class IANN_Player : public Player_Interface {
 
         // On met a jour la carte _uf[O(n)]
         _uf.applyMoveUF(child->moveRow, child->moveCol, child->playerJustMoved);
-        return {child,node->value};
+        return {child, value};
     }
 
     char simulate(Node* node) {
@@ -283,7 +274,6 @@ public:
             auto [probs, value] = evaluateState(_net, _root->state, _taille, _player);
             _root->value = value;
             _root->politique = probs;
-            //printPolitique(_root);
         }
 
         if (_training_mode && !_root->politique.empty()) {
@@ -307,39 +297,22 @@ public:
                 value = val;
             }
 
-            //if(!_unactivate_value_head) std::cerr << "evaluation de la position du reseaux : " << value << std:: endl; 
-            //std::cerr << "node current player avant simulation : " << node->playerJustMoved << std::endl;
-
-            current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
-            //std::cerr << "\nJoueur courant : " << current_player << std::endl;
-            //std::cerr << "noeud courant : (" << node->moveCol << "," << node->moveRow << ")" << std::endl;
-            
             // 3. Simulation
+            current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
             if(_unactivate_value_head) {
                 if (!_uf.hasWinner(node->playerJustMoved)){
                     winner = simulate(node);
-                    //std::cerr << "test1" << std::endl;
-                    //std::cerr << "winner : " << winner << std::endl;
-                    //std::cerr << "IA_PLAYER  : " << _player << std::endl;
-                    //std::cerr << "node current player apres simulation : " << node->playerJustMoved << std::endl;
-                    }
+                }
                 else{
                     winner = node->playerJustMoved;
-                    //std::cerr << "test2" << std::endl;
-                    }
+                }
             }
+
             // 4. Rétropropagation
             float resultat = (_unactivate_value_head == false)
                 ? value
-                : ((node->playerJustMoved == winner) ? 1.0f : -1.0f);
+                : ((current_player== winner) ? 1.0f : -1.0f);
 
-            /*if(_unactivate_value_head){
-                resultat = (node->playerJustMoved == winner) ? 1.0f : -1.0f;
-                //std::cerr << "evaluation de la position du rollout  : " << resultat << std:: endl; 
-            }
-            else{
-                resultat = value;
-            }*/
             backPropagate(node, resultat);
 
             if(_unactivate_value_head) resetUFToNow();
@@ -365,13 +338,13 @@ public:
         if (_training_mode && _training_examples != nullptr)
         {
             TrainingExample example;
-            // 1. Etat 
+            // 1. Etat
             example.state = encodeBoardState(_board, _taille, _player);
             // 2. Politique (issue du MCTS)
             example.policy = encodePolicy(visit_counts, _taille, _player, totalVisits);
             // 3. Joueur courant
             example.player = _player;
-            // 4. Laisser à 0 
+            // 4. Laisser à 0
             example.value_target = 0.0f;
             // 5. Ajout au dataset
             _training_examples->push_back(example);

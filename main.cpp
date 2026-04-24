@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
                     px->unactivateValueHead();
                     po->unactivateValueHead();
                 }
-                
+
                 px->enableDataCollection(&game_examples);
                 po->enableDataCollection(&game_examples);
 
