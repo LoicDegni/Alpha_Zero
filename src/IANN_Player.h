@@ -90,6 +90,8 @@ class IANN_Player : public Player_Interface {
         double score_puct;
 
         double move_value = 0.0;
+        int move_visited_count;
+        
         if (node->children.empty()) {
 
         }
@@ -99,8 +101,8 @@ class IANN_Player : public Player_Interface {
                 std::cerr << "child est nullptr" << std::endl;
                 exit(1);
             }
-            double move_value = child->valueSum;
-            int move_visited_count = child->visits;
+            move_value = child->valueSum;
+            move_visited_count = child->visits;
 
             if (move_visited_count > 0){
                 exploitation_score = move_value / move_visited_count;
