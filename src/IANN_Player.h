@@ -111,7 +111,10 @@ class IANN_Player : public Player_Interface {
                 best = child;
             }
         }
-
+        if(best == nullptr) {
+            std::cerr << "Best est nullptr" << std::endl;
+            exit(1);
+        }
         if(_unactivate_value_head) _uf.applyMoveUF(best->moveRow, best->moveCol, best->playerJustMoved);
         return best;
     }
