@@ -176,32 +176,29 @@ inline std::pair<std::vector<float>, float> evaluateState(
     net->eval();
 
     auto output = net->forward(encodeBoardState(cells, size, currentPlayer));
-    auto logits = std::get<0>(output).squeeze(0).clone();  // [N*N]
-    float value = std::get<1>(output).item<float>();       // Scalaire [-1, 1]
+    auto logits = std::get<0>(output).squeeze(0).clone();
+    float value = std::get<1>(output).item<float>();
 
-    // Masquer les cases occupées
-    {
-        auto acc = logits.accessor<float, 1>();
-        for (int r = 0; r < size; r++)
-            for (int c = 0; c < size; c++)
-                if (cells[r * size + c] != '-') {
-                    int rot = (currentPlayer == 'X') ? (r * size + c) : (c * size + r);
-                    acc[rot] = -1e9f;
-                }
+    assert(logits.size(0) == size * size);
+
+    auto acc = logits.accessor<float, 1>();
+
+    for (int i = 0; i < size * size; i++) {
+        if (cells[i] != '-') {
+            acc[i] = -1e9f;
+        }
     }
 
-    auto probs_rot = torch::softmax(logits, 0);
-    auto prob_acc  = probs_rot.accessor<float, 1>();
+    auto probs = torch::softmax(logits, 0);
 
-    // Retransformer dans l'espace original
-    std::vector<float> probs(size * size, 0.0f);
-    for (int r = 0; r < size; r++)
-        for (int c = 0; c < size; c++) {
-            int orig = r * size + c;
-            int rot  = (currentPlayer == 'X') ? orig : (c * size + r);
-            probs[orig] = prob_acc[rot];
-        }
-    return {probs, value};
+    std::vector<float> result(size * size);
+    auto p = probs.accessor<float, 1>();
+
+    for (int i = 0; i < size * size; i++) {
+        result[i] = p[i];
+    }
+
+    return {result, value};
 }
 
 // ============================================================

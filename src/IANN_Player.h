@@ -102,6 +102,7 @@ class IANN_Player : public Player_Interface {
             }
     
             exploration_score = _C_puct * (sqrt(node->visits) / (1 + (child->visits))) * child->Apriori;
+            
             double score_puct =  exploitation_score + exploration_score;
             
             if (score_puct > bestValue)
@@ -252,9 +253,9 @@ public:
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             _root->state = _board;
-
             getAllMoves(hex);
             auto [probs, value] = evaluateState(_net, _root->state, _taille, _player);
+            _root->value = value;
             _root->politique = probs;
             //printPolitique(_root);
         }
