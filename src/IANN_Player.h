@@ -127,7 +127,7 @@ class IANN_Player : public Player_Interface {
             }else {
                 std::cerr << "Le noeud a un enfant" << std::endl;
                 std::cerr << "Le dernier score_puct de la boucle est : " << score_puct << std::endl;
-                std::cerr << "Le score d'exploitation est : " << exploitation_score << std::endl;
+                std::cerr << "Le score d'exploitation est : " << exploitation_score << " = " << move_value << "/" << move_visited_count;  std::endl;
                 std::cerr << "Le score d'exploration est : " << exploration_score << std::endl;
             }
             std::cerr << "Best est nullptr" << std::endl;
