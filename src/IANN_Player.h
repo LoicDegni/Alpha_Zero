@@ -89,6 +89,10 @@ class IANN_Player : public Player_Interface {
         double exploration_score = 0;
 
         double move_value = 0.0;
+        if (node->children.empty()) {
+            std::cerr << "SELECT: node sans enfants, moveRow=" 
+                    << node->moveRow << " moveCol=" << node->moveCol << std::endl;
+        }
 
         for(auto child: node->children) {
             double move_value = child->valueSum;
@@ -129,6 +133,9 @@ class IANN_Player : public Player_Interface {
         int moveID; 
         Node* child = new Node();
         char current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
+        if (node->untriedMoves.empty()) {
+            std::cerr << "EXPAND: aucun coup possible !" << std::endl;
+        }
         moveID = node->untriedMoves.back();        
         node->untriedMoves.pop_back();
 
