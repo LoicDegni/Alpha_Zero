@@ -160,7 +160,6 @@ class IANN_Player : public Player_Interface {
         char current_player = (child->playerJustMoved == 'X') ? 'O' : 'X';
 
         auto [politiques, value] = evaluateState(_net, child->state, _taille, current_player);
-        std::cerr << "Value du evaluate : " << value << std::endl;
 
         child->politique = politiques;
 
