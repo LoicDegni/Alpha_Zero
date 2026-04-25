@@ -158,12 +158,10 @@ class IANN_Player : public Player_Interface {
         child->state[moveID] = child->playerJustMoved;
 
         char current_player = (child->playerJustMoved == 'X') ? 'O' : 'X';
-        
+
         auto [politiques, value] = evaluateState(_net, child->state, _taille, current_player);
-        if (value < -1.0 || value > 1.0){
-            std::cerr << "Value du evaluate state grande : " << value << std::endl;
-            exit(1);
-        }
+        std::cerr << "Value du evaluate : " << value << std::endl;
+
         child->politique = politiques;
 
         child->toVisit = node->toVisit;
