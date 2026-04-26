@@ -1,3 +1,11 @@
+/**
+ * INF4230 - INTELLIGENCE ARTIFICIELLE
+ * UQAM | Faculte des sciences | Departement d'informatique
+ * TP4 : AlphaZero pour le jeu de Hex
+ * PRENOM, NOM : Kaikou Loic Degni
+ * CODE PERMANENT : DEGK24059500
+ * 
+*/
 #pragma once
 
 #include <tuple>
@@ -41,7 +49,7 @@ class IANN_Player : public Player_Interface {
 
         int visits = 0;
         int wins = 0;
-        float value = 0.0;
+        
         float valueSum = 0.0;
         float Apriori = 0.0;
 
@@ -49,28 +57,10 @@ class IANN_Player : public Player_Interface {
         std::vector<int> toVisit;
         std::vector<int> untriedMoves;
         std::vector<char> state;
-
-        bool expanded = false;
     };
     Node* _root = nullptr;
 
     std::vector<TrainingExample>* _training_examples = nullptr;
-
-    std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
-        // Génération du bruit de Dirichlet via des lois Gamma
-        std::gamma_distribution<float> gamma(alpha, 1.0f);
-        std::vector<float> noise(taille_tableau);
-        float sum = 0.0f;
-        for (size_t k = 0; k < noise.size(); ++k) {
-            noise[k] = gamma(_rng);
-            sum += noise[k];
-        }
-        // Normalisation pour que la somme soit égale à 1
-        for (size_t k = 0; k < noise.size(); ++k) {
-            noise[k] /= sum;
-        }
-        return noise;
-    }
 
 //-------------------ALGO MCTS-------------------//
     Node* select(Node* node) {
@@ -94,10 +84,6 @@ class IANN_Player : public Player_Interface {
         }
 
         for(auto child: node->children) {
-            if(child == nullptr) {
-                std::cerr << "child est nullptr" << std::endl;
-                exit(1);
-            }
             move_value = child->valueSum;
             move_visited_count = child->visits;
 
@@ -117,20 +103,6 @@ class IANN_Player : public Player_Interface {
                 bestValue = score_puct;
                 best = child;
             }
-        }
-        if(best == nullptr) {
-            std::cerr << "Best est nullptr" << std::endl;
-            std::cerr << "Noeud ("<< node->moveRow << "," << node->moveCol << ")" << std::endl;
-            if(node->children.empty()) {
-                std::cerr << "Le noeud n'a pas d'enfant" << std::endl;
-            }else {
-                std::cerr << "Le noeud a un enfant" << std::endl;
-                std::cerr << "Le dernier score_puct de la boucle est : " << score_puct << std::endl;
-                std::cerr << "Le score d'exploitation est : " << exploitation_score << " = " << move_value << "/" << move_visited_count << std::endl;
-                std::cerr << "Le score d'exploration est : " << exploration_score << std::endl;
-            }
-            std::cerr << "Best est nullptr" << std::endl;
-            exit(1);
         }
         if(_unactivate_value_head) _uf.applyMoveUF(best->moveRow, best->moveCol, best->playerJustMoved);
         return best;
@@ -158,12 +130,11 @@ class IANN_Player : public Player_Interface {
         child->state[moveID] = child->playerJustMoved;
 
         char current_player = (child->playerJustMoved == 'X') ? 'O' : 'X';
-
         auto [politiques, value] = evaluateState(_net, child->state, _taille, current_player);
 
         child->politique = politiques;
-
         child->toVisit = node->toVisit;
+        
         //maj de child->tovisit
         auto it = std::find(child->toVisit.begin(), child->toVisit.end(),moveID);
         if (it != child->toVisit.end()) {
@@ -190,9 +161,7 @@ class IANN_Player : public Player_Interface {
         if (node->toVisit.empty()) {
             return node->playerJustMoved;
         }
-        //std::cerr << "Taille de node->toVisit : " << node->toVisit.size() << std::endl;
         simulateToTheEnd(pl,node->toVisit, played_moves);
-        //std::cerr << "Winner : " << pl << std::endl;
         return pl;
     }
 
@@ -207,21 +176,6 @@ class IANN_Player : public Player_Interface {
             v = -v;
             node = node->parent;
         }
-    }
-
-    void backpropagateUnactivatedVH (Node* node, char winner) {
-        /**
-         * La fonction utilsé quand le valueHead est inactif
-         * remonte l'arbre MCTS et mets à jour les noeuds.
-        */
-       while (node != nullptr) {
-        node->visits++;
-
-        if (node->playerJustMoved == winner){
-            node->wins++;
-        }
-        node = node->parent;
-       }
     }
 //-------------------ALGO MCTS-------------------//
 
@@ -266,21 +220,19 @@ public:
     std::tuple<int, int> getMove(Hex_Environement& hex) override {
         auto start = std::chrono::steady_clock::now();
         auto deadline = start + std::chrono::milliseconds(_time_limit_ms);
-        std::vector<int> current_moves; 
 
         if(_root == nullptr) {
             _root = new Node();
             _root->playerJustMoved = (_player == 'X') ? 'O' : 'X';
             _root->state = _board;
+
             getAllMoves(hex);
             auto [probs, value] = evaluateState(_net, _root->state, _taille, _player);
-            _root->value = value;
             _root->politique = probs;
         }
 
-        if (_training_mode && !_root->politique.empty()) {
+        if (_training_mode && !_root->politique.empty())
             applyDirichletNoise(hex, _root);
-        }
 
         while (std::chrono::steady_clock::now() < deadline) {
             Node* node = _root;
@@ -298,7 +250,6 @@ public:
                 node = child;
                 value = val;
             }
-
             // 3. Simulation
             current_player = (node->playerJustMoved == 'X') ? 'O' : 'X';
             if(_unactivate_value_head) {
@@ -309,14 +260,12 @@ public:
                     winner = node->playerJustMoved;
                 }
             }
-
             // 4. Rétropropagation
             float resultat = (_unactivate_value_head == false)
                 ? value
                 : ((current_player== winner) ? 1.0f : -1.0f);
 
             backPropagate(node, resultat);
-
             if(_unactivate_value_head) resetUFToNow();
         }
 
@@ -325,6 +274,7 @@ public:
             best = SampleBestChild(_root);
         else 
             best = FindBestChild(_root);
+
 
         std::vector<std::vector<int>> visit_counts(_taille, std::vector<int>(_taille, 0));
         float totalVisits = 0.0f;
@@ -336,7 +286,7 @@ public:
             totalVisits += child->visits;
         }
 
-        // Coup joué
+        // Enregistrement du coup joué dans l'ensemble _training_examples
         if (_training_mode && _training_examples != nullptr)
         {
             TrainingExample example;
@@ -381,7 +331,6 @@ public:
     }
 
 private:
-
     std::vector<int>  getAllMoves(Hex_Environement& hex) {
         /**
          * Fonction qui recupere tout les coups valides restant
@@ -440,34 +389,37 @@ private:
     }
 
     Node* SampleBestChild(Node* node) {
-        std::vector<double> probs;
-        double sum = 0.0;
+        /**
+         * Retourne un noeud sélectionné aléatoirement
+         * en fonction d'une distribution proportionnelle
+         * au nombre de visite des noeuds. 
+        */
+        std::vector<double> probabilites;
+        double visits_sum = 0.0;
 
         for (auto child : node->children) {
             double p = child->visits;
-            probs.push_back(p);
-            sum += p;
+            probabilites.push_back(p);
+            visits_sum += p;
         }
-        if (sum == 0) {
+        // Si aucun des noeuds n'est visité, on retourne un noeud aléatoirement
+        if (visits_sum == 0)
             return node->children[rand() % node->children.size()];
-        }
-
+            
         // normalisation
-        for (auto& p : probs) {
-            p /= sum;
-        }
+        for (auto& p : probabilites)
+            p /= visits_sum;
 
         // tirage
         double r = (double)rand() / RAND_MAX;
         double acc = 0.0;
 
         for (size_t i = 0; i < node->children.size(); i++) {
-            acc += probs[i];
+            acc += probabilites[i];
             if (r <= acc) {
                 return node->children[i];
             }
         }
-
         return node->children.back();
     }
 
@@ -508,6 +460,23 @@ private:
             }
     }
 
+//-------------------------IANN SPECIFIC PRIVATE FUNCTION-------------------------
+    std::vector<float> get_dirichlet_noise(int taille_tableau, float alpha = 0.3f ) {
+        // Génération du bruit de Dirichlet via des lois Gamma
+        std::gamma_distribution<float> gamma(alpha, 1.0f);
+        std::vector<float> noise(taille_tableau);
+        float sum = 0.0f;
+        for (size_t k = 0; k < noise.size(); ++k) {
+            noise[k] = gamma(_rng);
+            sum += noise[k];
+        }
+        // Normalisation pour que la somme soit égale à 1
+        for (size_t k = 0; k < noise.size(); ++k) {
+            noise[k] /= sum;
+        }
+        return noise;
+    }
+
     void applyDirichletNoise(Hex_Environement& hex, Node* root) {
         float epsilon = 0.25f;
         float alpha = 0.1f * (_taille * _taille);
@@ -519,14 +488,5 @@ private:
         for (float p : root->politique) sum += p;
         for (float& p : root->politique) p /= sum;
     }
-
-    void printPolitique(Node* node){
-        float sum = 0.0;
-        for (int i = 0; i < node->politique.size(); i++) {
-            sum += node->politique[i];
-            std::cerr << "[" << i << "]=" << node->politique[i] << " ";
-            if ((i + 1) % 8 == 0) std::cerr << "\n"; // adapte à size
-        }
-        std::cerr << "\nLa somme est : " << sum << std::endl;
-    }
+//-------------------------IANN SPECIFIC PRIVATE FUNCTION-------------------------
 };
